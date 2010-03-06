@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm -rf ebin/echo_client.beam
-erlc src/echo_client.erl
-mv echo_client.beam ebin/
+rm -rf ebin/cirrocumulus.beam
+erlc src/cirrocumulus.erl
+mv cirrocumulus.beam ebin/
 erl -pa ebin

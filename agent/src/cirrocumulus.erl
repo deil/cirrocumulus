@@ -26,13 +26,17 @@
 %% <pre>{ok, session} = echo_client:start().
 %% echo_client:stop(Session).</pre>
 
--module(echo_client).
+-module(cirrocumulus).
 
 -include_lib("exmpp/include/exmpp.hrl").
 -include_lib("exmpp/include/exmpp_client.hrl").
 
 -export([start/0, stop/1]).
 -export([init/0]).
+
+-define(Server, "89.223.109.31").
+-define(Port, 5222).
+-define(Hostname, "hc001.o1host.net").
 
 start() ->
     spawn(?MODULE, init, []).
@@ -46,13 +50,21 @@ init() ->
     %% Start XMPP session: Needed to start service (Like
     %% exmpp_stringprep):
     MySession = exmpp_session:start(),
+    
     %% Create XMPP ID (Session Key):
-    MyJID = exmpp_jid:make("s001s1", "o1host.net", "Cirrocumulus"),
+    MyJID = exmpp_jid:make(hostname(), ?Hostname, "Cirrocumulus"),
+    io:format("Hello, I am ~s~n", [hostname()]),
+    
     %% Create a new session with basic (digest) authentication:
-    exmpp_session:auth_basic_digest(MySession, MyJID, "s001s1"),
+    exmpp_session:auth_basic_digest(MySession, MyJID, hostname()),
+    
     %% Connect in standard TCP:
-    {ok, _StreamId} = exmpp_session:connect_TCP(MySession, "89.223.109.31", 5222),
+    {ok, _StreamId} = exmpp_session:connect_TCP(MySession, ?Server, ?Port),
     session(MySession, MyJID).
+    
+hostname() ->
+    {ok, Hostname} = inet:gethostname(),
+    Hostname.
 
 %% We are connected. We now log in (and try registering if authentication fails)
 session(MySession, _MyJID) ->
@@ -64,14 +76,14 @@ session(MySession, _MyJID) ->
 	    io:format("Register~n",[]),
 	    %% In a real life client, we should trap error case here
 	    %% and print the correct message.
-	    exmpp_session:register_account(MySession, "password"),
+	    exmpp_session:register_account(MySession, hostname()),
 	    %% After registration, retry to login:
 	    exmpp_session:login(MySession)
     end,
     %% We explicitely send presence:
     exmpp_session:send_packet(MySession,
 			      exmpp_presence:set_status(
-				exmpp_presence:available(), "Echo Ready")),
+				exmpp_presence:available(), "Cirrocumulus")),
     loop(MySession).
 
 %% Process exmpp packet:
