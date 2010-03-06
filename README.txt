@@ -1,2 +1,5 @@
-h1. Cirrocumulus Project
+= Cirrocumulus Project
 Agent-based infrastructure management system
+
+== Authors
+Originally developed by O1 Host (http://o1host.net/)
