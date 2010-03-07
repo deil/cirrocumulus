@@ -2,4 +2,4 @@
 Agent-based infrastructure management system
 
 == Authors
-Originally developed by O1 Host (http://o1host.net/)
+Originally developed by O1 Host (http://o1host.net)
