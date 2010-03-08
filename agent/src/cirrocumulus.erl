@@ -37,17 +37,18 @@
 -define(Server, "89.223.109.31").
 -define(Port, 5222).
 -define(Hostname, "hc001.o1host.net").
--define(Chatroom, "cirrocumulus@conference.o1host.net/" ++ hostname()).
+-define(Chatroom, "cirrocumulus@conference.o1host.net").
 
 start() ->
     spawn(?MODULE, init, []).
 
-stop(EchoClientPid) ->
-    EchoClientPid ! stop.
+stop(AgentPid) ->
+    AgentPid ! stop.
 
 
 init() ->
     application:start(exmpp),
+    
     %% Start XMPP session: Needed to start service (Like
     %% exmpp_stringprep):
     MySession = exmpp_session:start(),
@@ -62,12 +63,11 @@ init() ->
     %% Connect in standard TCP:
     {ok, _StreamId} = exmpp_session:connect_TCP(MySession, ?Server, ?Port),
     session(MySession, MyJID).
-    
+
 hostname() ->
     {ok, Hostname} = inet:gethostname(),
     Hostname.
 
-%% We are connected. We now log in (and try registering if authentication fails)
 session(MySession, _MyJID) ->
     %% Login with defined JID / Authentication:
     try exmpp_session:login(MySession)
@@ -81,31 +81,53 @@ session(MySession, _MyJID) ->
 	    %% After registration, retry to login:
 	    exmpp_session:login(MySession)
     end,
+
     %% We explicitely send presence:
     exmpp_session:send_packet(MySession,
 			      exmpp_presence:set_status(
 				exmpp_presence:available(), "Cirrocumulus")),
-				
+
     %% Join groupchat
-    Packet1 = #xmlel{name = 'presence'},
-    Packet = exmpp_xml:set_attribute(Packet1, to, ?Chatroom),
-    exmpp_session:send_packet(MySession, Packet),
+    groupchat(MySession),
+    send_message(MySession, hostname() ++ " is online"),
     loop(MySession).
+
+groupchat(MySession) ->
+    Packet = exmpp_xml:set_attribute(#xmlel{name = 'presence'}, to, ?Chatroom ++ "/" ++ hostname()),
+    exmpp_session:send_packet(MySession, Packet).
 
 %% Process exmpp packet:
 loop(MySession) ->
     receive
         stop ->
             exmpp_session:stop(MySession);
+
         %% If we receive a message, we reply with the same message
         Record = #received_packet{packet_type=message, raw_packet=Packet} ->
-            io:format("~p~n", [Record]),
-            echo_packet(MySession, Packet),
+    	    io:format("--> ~s~n", [exmpp_xml:document_to_binary(Packet)]),
+    	    io:format("from: ~s~n", [exmpp_xml:get_attribute(Packet, from, undefined)]),
+	    case exmpp_xml:has_element(Packet, body) of
+		true ->
+		    %%From = exmpp_xml:get_attribute(Packet, from),
+		    Body = exmpp_xml:get_element(Packet, body),
+		    io:format("from:~s~n", [Body])
+	    end,
+            %%io:format("~p~n", [Record]),
+            %%echo_packet(MySession, Packet),
             loop(MySession);
         Record ->
             io:format("~p~n", [Record]),
             loop(MySession)
     end.
+
+send_message(MySession, Text) ->
+    Msg = #xmlel{name = "message"},
+    Msg1 = exmpp_xml:set_attribute(Msg, type, <<"groupchat">>),
+    Msg2 = exmpp_xml:set_attribute(Msg1, to, ?Chatroom),
+    Body = #xmlel{name = "body"},
+    Body1 = exmpp_xml:set_cdata(Body, Text),
+    Packet = exmpp_xml:append_child(Msg2, Body1),
+    exmpp_session:send_packet(MySession, Packet).
 
 %% Send the same packet back for each message received
 echo_packet(MySession, Packet) ->
@@ -147,5 +169,4 @@ echo_packet(MySession, Packet) ->
     TmpPacket = exmpp_xml:set_attribute(Packet, from, To),
     TmpPacket2 = exmpp_xml:set_attribute(TmpPacket, to, <<"cirrocumulus@conference.o1host.net">>),
     NewPacket = exmpp_xml:remove_attribute(TmpPacket2, id),
-    io:format("packet: ~s", [exmpp_xml:document_to_binary(NewPacket)]),
     exmpp_session:send_packet(MySession, NewPacket).
