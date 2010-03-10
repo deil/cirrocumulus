@@ -31,8 +31,9 @@
 -include_lib("exmpp/include/exmpp.hrl").
 -include_lib("exmpp/include/exmpp_client.hrl").
 
--export([start/0, stop/1]).
--export([init/0]).
+%%-export([start/0, stop/1]).
+%%-export([init/0]).
+-compile(export_all).
 
 -define(Server, "89.223.109.31").
 -define(Port, 5222).
@@ -45,6 +46,8 @@ start() ->
 stop(AgentPid) ->
     AgentPid ! stop.
 
+start_script() ->
+    spawn(script_server, loop, [self()]).
 
 init() ->
     application:start(exmpp),
@@ -55,14 +58,16 @@ init() ->
     
     %% Create XMPP ID (Session Key):
     MyJID = exmpp_jid:make(hostname(), ?Hostname, "Cirrocumulus"),
-    io:format("Hello, I am ~s~n", [hostname()]),
+    io:format("Cirrocumulus: Hello, I am ~s~n", [hostname()]),
     
     %% Create a new session with basic (digest) authentication:
     exmpp_session:auth_basic_digest(MySession, MyJID, hostname()),
     
     %% Connect in standard TCP:
     {ok, _StreamId} = exmpp_session:connect_TCP(MySession, ?Server, ?Port),
-    session(MySession, MyJID).
+    session(MySession, MyJID),
+    ScriptServer = start_script(),
+    loop(MySession, ScriptServer).
 
 hostname() ->
     {ok, Hostname} = inet:gethostname(),
@@ -88,36 +93,54 @@ session(MySession, _MyJID) ->
 				exmpp_presence:available(), "Cirrocumulus")),
 
     %% Join groupchat
-    groupchat(MySession),
-    send_message(MySession, hostname() ++ " is online"),
-    loop(MySession).
+    groupchat(MySession).
 
 groupchat(MySession) ->
     Packet = exmpp_xml:set_attribute(#xmlel{name = 'presence'}, to, ?Chatroom ++ "/" ++ hostname()),
     exmpp_session:send_packet(MySession, Packet).
 
 %% Process exmpp packet:
-loop(MySession) ->
+loop(MySession, ScriptServer) ->
+    Self = self(),
+    
     receive
         stop ->
-            exmpp_session:stop(MySession);
+            exmpp_session:stop(MySession),
+            ScriptServer ! stop;
+            
+        {Self, Data} ->
+    	    send_message(MySession, Data),
+    	    loop(MySession, ScriptServer);
 
         %% If we receive a message, we reply with the same message
         Record = #received_packet{packet_type=message, raw_packet=Packet} ->
-    	    io:format("--> ~s~n", [exmpp_xml:document_to_binary(Packet)]),
-    	    io:format("from: ~s~n", [exmpp_xml:get_attribute(Packet, from, undefined)]),
-	    case exmpp_xml:has_element(Packet, body) of
-		true ->
-		    %%From = exmpp_xml:get_attribute(Packet, from),
-		    Body = exmpp_xml:get_element(Packet, body),
-		    io:format("from:~s~n", [Body])
-	    end,
-            %%io:format("~p~n", [Record]),
-            %%echo_packet(MySession, Packet),
-            loop(MySession);
+    	    %%io:format("--> ~s~n", [exmpp_xml:document_to_binary(Packet)]),
+    	    From = exmpp_xml:get_attribute(Packet, from, undefined),
+    	    HasBody = exmpp_xml:has_element(Packet, body),
+    	    MyMessage = message_from_self(From),
+    	    ShouldProcess = HasBody and not MyMessage,
+    	    case ShouldProcess of
+    		true ->
+    		    io:format("Cirrocumulus: message from ~s~n", [From]),
+    		    BodyElem = exmpp_xml:get_element(Packet, body),
+    		    Body = exmpp_xml:get_cdata(BodyElem),
+    		    io:format("Cirrocumulus: with body: ~s~n", [Body]),
+    		    ScriptServer ! {send, Body};
+    		    %%process_message(MySession, From, Body);
+    		_ -> false
+    	    end,
+            loop(MySession, ScriptServer);
+            
         Record ->
-            io:format("~p~n", [Record]),
-            loop(MySession)
+            %%io:format("~p~n", [Record]),
+            loop(MySession, ScriptServer)
+    end.
+    
+message_from_self(From) ->
+    Res = regexp:match(binary_to_list(From), hostname()),
+    case Res of
+	nomatch -> false;
+	_ -> true 
     end.
 
 send_message(MySession, Text) ->
@@ -128,6 +151,9 @@ send_message(MySession, Text) ->
     Body1 = exmpp_xml:set_cdata(Body, Text),
     Packet = exmpp_xml:append_child(Msg2, Body1),
     exmpp_session:send_packet(MySession, Packet).
+    
+process_message(MySession, From, Text) ->
+    send_message(MySession, "сам хуй!").
 
 %% Send the same packet back for each message received
 echo_packet(MySession, Packet) ->
