@@ -1,5 +1,13 @@
 = Cirrocumulus Project
 Agent-based infrastructure management system
 
+== Running
+For compiling just perform 'make' in root directory.
+To run the agent, use 'start.sh' script.
+After that issue a command in Erlang shell:
+ CC = cirrocumulus:start().
+To stop running agent, type:
+ CC ! stop.
+
 == Authors
 Originally developed by O1 Host (http://o1host.net)
