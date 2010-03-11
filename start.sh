@@ -1,3 +1,3 @@
 #!/bin/bash
 
-erl -pa agent/ebin -pa agent/exmpp -sname agent -setcookie cirrocumulus
+erl -pa agent/ebin -pa exmpp/ebin -setcookie cirrocumulus
