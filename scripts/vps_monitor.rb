@@ -1,20 +1,36 @@
 require 'rubygems'
 require 'erlectricity'
 
+SLEEP_TIMEOUT = 3
 stop = false
 
 receive do |f|
     Thread.new do
 	f.send!([:result, "started external script"])
-	prev = 0
+	vps_time = {}
+	vps_cpu = {}
+	
 	while not stop
-	    processes = `ps aux | wc -l`
-	    if processes != prev
-		f.send!([:result, "Total processes: %s" % [processes]])
+	    xm_out = `xm list`.split("\n")
+	    xm_out.each_with_index do |xm, i|
+		if i > 0
+		    begin
+			vps = xm.split(" ")[0]
+			time = xm.split(" ")[5].to_f
+			if not vps_time[vps].nil?
+			    diff = time - vps_time[vps]
+			    cpu_usage = (100 * (diff / (SLEEP_TIMEOUT * 4).to_f)).to_i
+			    f.send!([:result, "VPS #{vps}: #{cpu_usage}%"]) unless vps_cpu[vps].nil? or vps_cpu[vps] == cpu_usage
+			    vps_cpu[vps] = cpu_usage
+			end
+			vps_time[vps] = time
+		    rescue Exception => ex
+			f.send!([:result, ex.to_s])
+		    end
+		end
 	    end
 
-	    prev = processes
-	    sleep(0.1)
+	    sleep(SLEEP_TIMEOUT)
 	end
 	
 	f.send!([:result, "stopped external script"])
