@@ -5,7 +5,7 @@
 
 loop(MainServer) ->
     io:format("ScriptServer: started~n", []),
-    Port = open_port({spawn, ?Ruby ++ " ../scripts/vps_monitor.rb"}, [{packet, 4}, nouse_stdio, exit_status, binary]),
+    Port = open_port({spawn, ?Ruby ++ " scripts/vps_monitor.rb"}, [{packet, 4}, nouse_stdio, exit_status, binary]),
     loop(MainServer, Port).
 
 loop(MainServer, Port) ->
