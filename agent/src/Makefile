@@ -5,7 +5,7 @@
 
 ERL = erl -boot start_clean
 
-MODS = script_server cirrocumulus
+MODS = script_server message_bus cirrocumulus
 
 all: compile
 #	${ERL} -pa '/home/joe/.../this/dir' -s module1 start
