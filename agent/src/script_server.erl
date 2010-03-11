@@ -20,7 +20,7 @@ loop(Cirrocumulus, Port) ->
 	    Cirrocumulus ! {Self, reply, Text},
 	    loop(Cirrocumulus, Port);
 	    
-	{send, Data} ->
+	{process, Data} ->
 	    io:format("ScriptServer: -> ~s~n", [Data]),
 	    port_command(Port, term_to_binary({echo, Data})),
 	    loop(Cirrocumulus, Port)

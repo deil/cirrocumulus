@@ -62,13 +62,13 @@ groupchat(MySession) ->
 %% Process exmpp packet:
 loop(MySession, Cirrocumulus) ->
     Self = self(),
-    
+
     receive
         stop ->
     	    io:format("MessageBus: stop~n"),
             exmpp_session:stop(MySession);
-            
-        {Self, Text} ->
+
+        {message, Text} ->
     	    send_message(MySession, Text),
     	    loop(MySession, Cirrocumulus);
 

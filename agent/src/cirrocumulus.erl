@@ -22,6 +22,14 @@ loop(MessageBus, ScriptServer) ->
 	    ScriptServer ! stop,
 	    MessageBus ! stop;
 
+	{MessageBus, message, Text} ->
+	    ScriptServer ! {process, Text},
+	    loop(MessageBus, ScriptServer);
+	    
+	{ScriptServer, reply, Text} ->
+	    MessageBus ! {message, Text},
+	    loop(MessageBus, ScriptServer);
+
         _ ->
     	    loop(MessageBus, ScriptServer)
     end.
