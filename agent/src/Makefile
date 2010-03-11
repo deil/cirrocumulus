@@ -1,7 +1,7 @@
 .SUFFIXES: .erl .beam
 
 .erl.beam:
-	erlc -o ../ebin -W $<
+	erlc -I../include -o ../ebin -W $<
 
 ERL = erl -boot start_clean
 

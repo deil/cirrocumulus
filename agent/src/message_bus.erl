@@ -1,7 +1,7 @@
 -module(message_bus).
 
--include_lib("exmpp/include/exmpp.hrl").
--include_lib("exmpp/include/exmpp_client.hrl").
+-include_lib("../include/exmpp.hrl").
+-include_lib("../include/exmpp_client.hrl").
 
 -compile(export_all).
 
