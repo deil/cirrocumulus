@@ -5,7 +5,7 @@ SLEEP_TIMEOUT = 3
 stop = false
 
 receive do |f|
-    Thread.new do
+    thread = Thread.new do
 	f.send!([:result, "started external script"])
 	vps_time = {}
 	vps_cpu = {}
@@ -43,3 +43,4 @@ receive do |f|
 end
 
 stop = true
+thread.terminate!
