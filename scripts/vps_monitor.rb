@@ -17,7 +17,7 @@ receive do |f|
 		    begin
 			vps = xm.split(" ")[0]
 			time = xm.split(" ")[5].to_f
-			if not vps_time[vps].nil?
+			if not vps_time[vps].nil? and vps != "Domain-0"
 			    diff = time - vps_time[vps]
 			    cpu_usage = (100 * (diff / (SLEEP_TIMEOUT * 4).to_f)).to_i
 			    f.send!([:result, "VPS #{vps}: #{cpu_usage}%"]) unless vps_cpu[vps].nil? or vps_cpu[vps] == cpu_usage
