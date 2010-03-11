@@ -8,9 +8,6 @@ start() ->
 stop(AgentPid) ->
     AgentPid ! stop.
 
-start_script() ->
-    spawn(script_server, loop, [self()]).
-
 init() ->
     MessageBus = spawn(message_bus, init, [self()]),
     ScriptServer = spawn(script_server, loop, [self()]),
