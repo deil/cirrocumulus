@@ -3,12 +3,9 @@
 -include_lib("exmpp.hrl").
 -include_lib("exmpp_client.hrl").
 
--compile(export_all).
+-include("jabber_config.hrl").
 
--define(Server, "89.223.109.31").
--define(Port, 5222).
--define(Hostname, "hc001.o1host.net").
--define(Chatroom, "cirrocumulus@conference.o1host.net").
+-compile(export_all).
 
 init(Cirrocumulus) ->
     application:start(exmpp),
