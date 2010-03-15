@@ -16,7 +16,7 @@ init(Cirrocumulus) ->
     
     %% Create XMPP ID (Session Key):
     MyJID = exmpp_jid:make(hostname(), ?Hostname, "Cirrocumulus"),
-    io:format("MessageBuss: logging as ~s@~s~n", [hostname(), ?Hostname]),
+    io:format("MessageBus: logging as ~s@~s~n", [hostname(), ?Hostname]),
     
     %% Create a new session with basic (digest) authentication:
     exmpp_session:auth_basic_digest(MySession, MyJID, hostname()),
