@@ -7,7 +7,7 @@
 
 -compile(export_all).
 
-init(Cirrocumulus) ->
+init(Cirrocumulus, Resource) ->
     application:start(exmpp),
     
     %% Start XMPP session: Needed to start service (Like
@@ -15,15 +15,17 @@ init(Cirrocumulus) ->
     MySession = exmpp_session:start(),
     
     %% Create XMPP ID (Session Key):
-    MyJID = exmpp_jid:make(hostname(), ?Hostname, "Cirrocumulus"),
-    io:format("MessageBus: logging as ~s@~s~n", [hostname(), ?Hostname]),
+    Jid = hostname() ++ "-" ++ Resource,
+    io:format("JID: ~s~n", [Jid]),
+    MyJID = exmpp_jid:make(Jid, ?Hostname, "Cirrocumulus"),
+    io:format("MessageBus: logging as ~p~n", [MyJID]),
     
     %% Create a new session with basic (digest) authentication:
-    exmpp_session:auth_basic_digest(MySession, MyJID, hostname()),
+    exmpp_session:auth_basic_digest(MySession, MyJID, Jid),
     
     %% Connect in standard TCP:
     {ok, _StreamId} = exmpp_session:connect_TCP(MySession, ?Server, ?Port),
-    session(MySession, MyJID),
+    session(MySession, Jid),
     loop(MySession, Cirrocumulus).
 
 hostname() ->
@@ -39,7 +41,7 @@ session(MySession, _MyJID) ->
 	    io:format("Register~n",[]),
 	    %% In a real life client, we should trap error case here
 	    %% and print the correct message.
-	    exmpp_session:register_account(MySession, hostname()),
+	    exmpp_session:register_account(MySession, _MyJID),
 	    %% After registration, retry to login:
 	    exmpp_session:login(MySession)
     end,
