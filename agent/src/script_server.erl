@@ -3,9 +3,9 @@
 
 -define(Ruby, "/opt/ruby18/bin/ruby").
 
-loop(Cirrocumulus) ->
-    io:format("ScriptServer: started~n", []),
-    Port = open_port({spawn, ?Ruby ++ " scripts/vps_monitor.rb"}, [{packet, 4}, nouse_stdio, exit_status, binary]),
+init(Cirrocumulus, Script) ->
+    io:format("ScriptServer: started, script ~s~n", [Script]),
+    Port = open_port({spawn, ?Ruby ++ " scripts/" ++ Script}, [{packet, 4}, nouse_stdio, exit_status, binary]),
     loop(Cirrocumulus, Port).
 
 loop(Cirrocumulus, Port) ->

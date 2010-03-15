@@ -107,7 +107,16 @@ send_message(MySession, Text) ->
     Body1 = exmpp_xml:set_cdata(Body, Text),
     Packet = exmpp_xml:append_child(Msg2, Body1),
     exmpp_session:send_packet(MySession, Packet).
-    
+
+send_message(MySession, To, Text) ->
+    Msg = #xmlel{name = "message"},
+    Msg1 = exmpp_xml:set_attribute(Msg, type, <<"chat">>),
+    Msg2 = exmpp_xml:set_attribute(Msg1, to, To),
+    Body = #xmlel{name = "body"},
+    Body1 = exmpp_xml:set_cdata(Body, Text),
+    Packet = exmpp_xml:append_child(Msg2, Body1),
+    exmpp_session:send_packet(MySession, Packet).
+
 process_message(MySession, From, Text) ->
     send_message(MySession, "сам хуй!").
 

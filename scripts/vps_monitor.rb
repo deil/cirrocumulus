@@ -3,6 +3,7 @@ require 'erlectricity'
 
 SLEEP_TIMEOUT = 3
 stop = false
+thread = nil
 
 receive do |f|
     thread = Thread.new do
