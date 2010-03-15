@@ -52,10 +52,10 @@ session(MySession, _MyJID) ->
 				exmpp_presence:available(), "Cirrocumulus")),
 
     %% Join groupchat
-    groupchat(MySession).
+    groupchat(MySession, _MyJID).
 
-groupchat(MySession) ->
-    Packet = exmpp_xml:set_attribute(#xmlel{name = 'presence'}, to, ?Chatroom ++ "/" ++ hostname()),
+groupchat(MySession, MyJID) ->
+    Packet = exmpp_xml:set_attribute(#xmlel{name = 'presence'}, to, ?Chatroom ++ "/" ++ MyJID),
     exmpp_session:send_packet(MySession, Packet).
 
 %% Process exmpp packet:
