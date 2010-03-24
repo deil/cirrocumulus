@@ -9,7 +9,7 @@ stop(AgentPid) ->
     AgentPid ! stop.
 
 init() ->
-    Script = "vps_monitor",
+    Script = "account_monitor",
     MessageBus = spawn(message_bus, init, [self(), Script]),
     ScriptServer = spawn(script_server, init, [self(), Script ++ ".rb"]),
     loop(MessageBus, ScriptServer).

@@ -2,6 +2,8 @@
 
 -include_lib("exmpp.hrl").
 -include_lib("exmpp_client.hrl").
+-include_lib("internal/exmpp_xmpp.hrl").
+-include_lib("xmerl/include/xmerl.hrl").
 
 -include("jabber_config.hrl").
 
@@ -16,17 +18,16 @@ init(Cirrocumulus, Resource) ->
     
     %% Create XMPP ID (Session Key):
     Jid = hostname() ++ "-" ++ Resource,
-    io:format("JID: ~s~n", [Jid]),
     MyJID = exmpp_jid:make(Jid, ?Hostname, "Cirrocumulus"),
     io:format("MessageBus: logging as ~p~n", [MyJID]),
     
     %% Create a new session with basic (digest) authentication:
-    exmpp_session:auth_basic_digest(MySession, MyJID, Jid),
+    exmpp_session:auth_basic_digest(MySession, MyJID, binary_to_list(MyJID#jid.prep_node)),
     
     %% Connect in standard TCP:
     {ok, _StreamId} = exmpp_session:connect_TCP(MySession, ?Server, ?Port),
-    session(MySession, Jid),
-    loop(MySession, Cirrocumulus).
+    session(MySession, MyJID),
+    loop(MySession, MyJID, Cirrocumulus).
 
 hostname() ->
     {ok, Hostname} = inet:gethostname(),
@@ -41,25 +42,20 @@ session(MySession, _MyJID) ->
 	    io:format("Register~n",[]),
 	    %% In a real life client, we should trap error case here
 	    %% and print the correct message.
-	    exmpp_session:register_account(MySession, _MyJID),
+	    exmpp_session:register_account(MySession, _MyJID#jid.prep_node),
 	    %% After registration, retry to login:
 	    exmpp_session:login(MySession)
     end,
 
-    %% We explicitely send presence:
-    exmpp_session:send_packet(MySession,
-			      exmpp_presence:set_status(
-				exmpp_presence:available(), "Cirrocumulus")),
+    exmpp_session:send_packet(MySession, exmpp_presence:set_status(exmpp_presence:available(), "Cirrocumulus")),
+    join_groupchat(MySession, _MyJID).
 
-    %% Join groupchat
-    groupchat(MySession, _MyJID).
-
-groupchat(MySession, MyJID) ->
-    Packet = exmpp_xml:set_attribute(#xmlel{name = 'presence'}, to, ?Chatroom ++ "/" ++ MyJID),
+join_groupchat(MySession, MyJID) ->
+    Packet = exmpp_xml:set_attribute(#xmlel{name = 'presence'}, to, ?Chatroom ++ "/" ++ MyJID#jid.prep_node),
     exmpp_session:send_packet(MySession, Packet).
 
 %% Process exmpp packet:
-loop(MySession, Cirrocumulus) ->
+loop(MySession, MyJID, Cirrocumulus) ->
     Self = self(),
 
     receive
@@ -69,7 +65,7 @@ loop(MySession, Cirrocumulus) ->
 
         {message, Text} ->
     	    send_message(MySession, Text),
-    	    loop(MySession, Cirrocumulus);
+    	    loop(MySession, MyJID, Cirrocumulus);
 
         %% If we receive a message, we reply with the same message
         Record = #received_packet{packet_type=message, raw_packet=Packet} ->
@@ -83,22 +79,59 @@ loop(MySession, Cirrocumulus) ->
     		    BodyElem = exmpp_xml:get_element(Packet, body),
     		    Body = exmpp_xml:get_cdata(BodyElem),
     		    io:format("MessageBus: -> ~s:~s~n", [From, Body]),
-    		    Cirrocumulus ! {Self, message, Body};
-    		    %%process_message(MySession, From, Body);
+    		    parse_message(Body),
+    		    Cirrocumulus ! {Self, message, Body},
+    		    process_message(MySession, MyJID, From, Body);
     		_ -> false
     	    end,
-            loop(MySession, Cirrocumulus);
+            loop(MySession, MyJID, Cirrocumulus);
             
         Record ->
             %%io:format("~p~n", [Record]),
-            loop(MySession, Cirrocumulus)
+            loop(MySession, MyJID, Cirrocumulus)
     end.
-    
+
+parse_message(Text) ->
+    try
+	String = binary_to_list(Text),
+	{Document, _} = xmerl_scan:string(String),
+	[Ontology] = xmerl_xs:select("/fipa-message/@ontology", Document),
+	KnownOntology = known_ontology(Ontology#xmlAttribute.value),
+	if
+	    KnownOntology == true ->
+		[Content] = xmerl_xs:select("/fipa-message/content", Document),
+		io:format("-> Content: ~s~n", [xmerl_xs:value_of(Content)]),
+		Senders = xmerl_xs:select("/fipa-message/sender", Document),
+		if
+		    length(Senders) == 1 ->
+			[Sender] = Senders,
+			[SenderName1] = xmerl_xs:select("/sender/@name", Sender),
+			SenderName = SenderName1#xmlAttribute.value,
+			io:format("-> Sender: ~s~n", [SenderName]);
+		    true -> false
+		end;
+	    true ->
+		%%io:format("Unknown ontology: ~s~n", [Ontology#xmlAttribute.value])
+		false
+	end
+    catch
+	_:Reason ->
+		    io:format("~nException:~p~n", [Reason]),
+		    false
+    end.
+
+known_ontology(Ontology) ->
+    Res = regexp:match(Ontology, "/cirrocumulus/.*$"),
+    case Res of
+	nomatch -> false;
+	_ -> true
+    end.
+
 message_from_self(From) ->
     Res = regexp:match(binary_to_list(From), hostname()),
     case Res of
 	nomatch -> false;
-	_ -> true 
+	_ -> true
     end.
 
 send_message(MySession, Text) ->
@@ -119,8 +152,19 @@ send_message(MySession, To, Text) ->
     Packet = exmpp_xml:append_child(Msg2, Body1),
     exmpp_session:send_packet(MySession, Packet).
 
-process_message(MySession, From, Text) ->
-    send_message(MySession, "сам хуй!").
+process_message(MySession, MyJID, From, Text) ->
+    El1 = #xmlel{name = 'fipa-message'},
+    El2 = exmpp_xml:set_attribute(El1, act, "inform"),
+    Sender1 = #xmlel{name = 'sender'},
+    Sender = exmpp_xml:set_attribute(Sender1, name, MyJID#jid.prep_node),
+    Ontology1 = #xmlel{name = 'ontology'},
+    Ontology = exmpp_xml:set_cdata(Ontology1, "cirrocumulus"),
+    El3 = exmpp_xml:append_child(El2, Sender),
+    El4 = exmpp_xml:append_child(El3, Ontology),
+    Content1 = #xmlel{name = 'content'},
+    Content = exmpp_xml:set_cdata(Content1, binary_to_list(Text)),
+    El = exmpp_xml:append_child(El4, Content),
+    send_message(MySession, exmpp_xml:document_to_binary(El)).
 
 %% Send the same packet back for each message received
 echo_packet(MySession, Packet) ->
