@@ -10,24 +10,26 @@ stop(AgentPid) ->
 
 init() ->
     Script = "account_monitor",
-    MessageBus = spawn(message_bus, init, [self(), Script]),
+    Brain = spawn(list_to_atom(Script), init, [self()]),
+    MessageBus = spawn(message_bus, init, [self(), Brain, Script]),
     ScriptServer = spawn(script_server, init, [self(), Script ++ ".rb"]),
-    loop(MessageBus, ScriptServer).
+    loop(Brain, MessageBus, ScriptServer).
 
-loop(MessageBus, ScriptServer) ->
+loop(Brain, MessageBus, ScriptServer) ->
     receive
         stop ->
+	    Brain ! stop,
 	    ScriptServer ! stop,
 	    MessageBus ! stop;
 
 	{MessageBus, message, Text} ->
 	    ScriptServer ! {process, Text},
-	    loop(MessageBus, ScriptServer);
+	    loop(Brain, MessageBus, ScriptServer);
 	    
 	{ScriptServer, reply, Text} ->
 	    MessageBus ! {message, Text},
-	    loop(MessageBus, ScriptServer);
+	    loop(Brain, MessageBus, ScriptServer);
 
         _ ->
-    	    loop(MessageBus, ScriptServer)
+    	    loop(Brain, MessageBus, ScriptServer)
     end.
