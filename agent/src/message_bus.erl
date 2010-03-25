@@ -6,15 +6,18 @@
 -include_lib("xmerl/include/xmerl.hrl").
 
 -include("jabber_config.hrl").
+-include("fipa_message.hrl").
 
 -compile(export_all).
 
 init(Cirrocumulus, Brain, Resource) ->
+    logger:start(?MODULE),
     application:start(exmpp),
     MySession = exmpp_session:start(),
     Jid = hostname() ++ "-" ++ Resource,
     MyJID = exmpp_jid:make(Jid, ?Hostname, "Cirrocumulus"),
-    io:format("MessageBus: logging as ~p~n", [MyJID]),
+    logger:log(?MODULE, io_lib:format("logging as ~p", [MyJID])),
+    %%io:format("MessageBus: logging as ~p~n", [MyJID]),
     exmpp_session:auth_basic_digest(MySession, MyJID, binary_to_list(MyJID#jid.prep_node)),
     {ok, _StreamId} = exmpp_session:connect_TCP(MySession, ?Server, ?Port),
     session(MySession, MyJID),
@@ -70,7 +73,7 @@ loop(MySession, MyJID, Cirrocumulus, Brain) ->
     		    BodyElem = exmpp_xml:get_element(Packet, body),
     		    Body = exmpp_xml:get_cdata(BodyElem),
     		    io:format("MessageBus: -> ~s:~s~n", [From, Body]),
-    		    parse_message(Body, Brain),
+    		    Message = fipa_message:parse_message(Body, Brain),
     		    Cirrocumulus ! {Self, message, Body},
     		    process_message(MySession, MyJID, From, Body);
     		_ -> false
@@ -81,52 +84,6 @@ loop(MySession, MyJID, Cirrocumulus, Brain) ->
             %%io:format("~p~n", [Record]),
             loop(MySession, MyJID, Cirrocumulus, Brain)
     end.
-
-parse_message(Text, Brain) ->
-    try
-	String = binary_to_list(Text),
-	{Document, _} = xmerl_scan:string(String),
-	[OntologyAttr] = xmerl_xs:select("/fipa-message/@ontology", Document),
-	case is_known_ontology(OntologyAttr#xmlAttribute.value, Brain) of
-	    true ->
-		Ontology = extract_ontology(OntologyAttr#xmlAttribute.value),
-		io:format("-> Ontology: ~s~n", [Ontology]),
-		[Content] = xmerl_xs:select("/fipa-message/content", Document),
-		io:format("-> Content: ~s~n", [xmerl_xs:value_of(Content)]),
-		Senders = xmerl_xs:select("/fipa-message/sender", Document),
-		if
-		    length(Senders) == 1 ->
-			[Sender] = Senders,
-			[SenderName1] = xmerl_xs:select("/sender/@name", Sender),
-			SenderName = SenderName1#xmlAttribute.value,
-			io:format("-> Sender: ~s~n", [SenderName]);
-		    true -> false
-		end;
-	    false ->
-		%%io:format("Unknown ontology: ~s~n", [Ontology#xmlAttribute.value])
-		false
-	end
-    catch
-	_:Reason ->
-		    io:format("~nException:~p~n", [Reason]),
-		    false
-    end.
-
-is_known_ontology(Ontology, Brain) ->
-    Brain ! {self(), get_ontology},
-    receive
-	{get_ontology, SupportedOntology} ->
-	    Pattern = "/" ++ SupportedOntology ++ "$",
-	    Res = regexp:match(Ontology, Pattern),
-	    case Res of
-		nomatch -> false;
-		_ -> true
-	    end
-    end.
-
-extract_ontology(Ontology) ->
-    {match, Start, Length} = regexp:match(Ontology, "/cirrocumulus-"),
-    string:substr(Ontology, Start+1).
 
 message_from_self(From) ->
     Res = regexp:match(binary_to_list(From), hostname()),
