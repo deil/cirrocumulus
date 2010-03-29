@@ -14,7 +14,7 @@ init(Cirrocumulus, Brain, Resource) ->
     logger:start(?MODULE),
     application:start(exmpp),
     MySession = exmpp_session:start(),
-    Jid = hostname() ++ "-" ++ Resource,
+    Jid = get_hostname() ++ "-" ++ Resource,
     MyJID = exmpp_jid:make(Jid, ?Hostname, "Cirrocumulus"),
     logger:log(?MODULE, io_lib:format("logging as ~p", [MyJID])),
     %%io:format("MessageBus: logging as ~p~n", [MyJID]),
@@ -23,24 +23,24 @@ init(Cirrocumulus, Brain, Resource) ->
     session(MySession, MyJID),
     loop(MySession, MyJID, Cirrocumulus, Brain).
 
-hostname() ->
+get_hostname() ->
     {ok, Hostname} = inet:gethostname(),
     Hostname.
 
 session(MySession, _MyJID) ->
     %% Login with defined JID / Authentication:
-    try exmpp_session:login(MySession)
+    try
+      exmpp_session:login(MySession)
     catch
-	throw:{auth_error, 'not-authorized'} ->
-	    %% Try creating a new user:
-	    io:format("Register~n",[]),
-	    %% In a real life client, we should trap error case here
-	    %% and print the correct message.
-	    exmpp_session:register_account(MySession, _MyJID#jid.prep_node),
-	    %% After registration, retry to login:
-	    exmpp_session:login(MySession)
+      {auth_error, 'not-authorized'} ->
+	  %% Try creating a new user:
+	  io:format("Register~n", []),
+	  %% In a real life client, we should trap error case here
+	  %% and print the correct message.
+	  exmpp_session:register_account(MySession, _MyJID#jid.prep_node),
+	  %% After registration, retry to login:
+	  exmpp_session:login(MySession)
     end,
-
     exmpp_session:send_packet(MySession, exmpp_presence:set_status(exmpp_presence:available(), "Cirrocumulus")),
     join_groupchat(MySession, _MyJID).
 
@@ -86,10 +86,10 @@ loop(MySession, MyJID, Cirrocumulus, Brain) ->
     end.
 
 message_from_self(From) ->
-    Res = regexp:match(binary_to_list(From), hostname()),
+    Res = regexp:match(binary_to_list(From), get_hostname()),
     case Res of
-	nomatch -> false;
-	_ -> true
+      nomatch -> false;
+      _ -> true
     end.
 
 send_message(MySession, Text) ->
