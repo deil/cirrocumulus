@@ -72,10 +72,10 @@ loop(MySession, MyJID, Cirrocumulus, Brain) ->
     		true ->
     		    BodyElem = exmpp_xml:get_element(Packet, body),
     		    Body = exmpp_xml:get_cdata(BodyElem),
-    		    io:format("MessageBus: -> ~s:~s~n", [From, Body]),
     		    Message = fipa_message:parse_message(Body, Brain),
-    		    Cirrocumulus ! {Self, message, Body},
-    		    process_message(MySession, MyJID, From, Body);
+    		    logger:log(?MODULE, io_lib:format("got message -> ~p", [Message])),
+    		    Cirrocumulus ! {Self, message, Message};
+    		    %%process_message(MySession, MyJID, From, Body);
     		_ -> false
     	    end,
             loop(MySession, MyJID, Cirrocumulus, Brain);

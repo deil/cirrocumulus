@@ -1,2 +1,2 @@
 -record(agent_identifier, {name}).
--record(fipa_message, {act, sender, ontology, content}).
+-record(fipa_message, {act, sender, receiver, ontology, content}).

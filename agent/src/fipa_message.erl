@@ -30,6 +30,23 @@ parse_sender(Xml) ->
 	length(Senders) == 0 -> undefined
     end.
 
+parse_receiver(Xml) ->
+    Receivers = xmerl_xs:select("/fipa-message/receiver", Xml),
+    if
+	length(Receivers) == 1 ->
+	    [Receiver|_] = Receivers,
+	    [NameAttr] = xmerl_xs:select("/receiver/@name", Receiver),
+	    #agent_identifier{name = NameAttr#xmlAttribute.value};
+	
+	length(Receivers) == 0 -> undefined
+    end.
+
+message_for(Message, Agent) ->
+    if
+	Message#fipa_message.receiver == Agent -> true;
+	Message#fipa_message.receiver /= Agent -> false
+    end.
+
 parse_message(Binary, Brain) ->
     try
 	String = binary_to_list(Binary),
@@ -43,8 +60,8 @@ parse_message(Binary, Brain) ->
 		[ContentElem] = xmerl_xs:select("/fipa-message/content", Document),
 		[Content] = xmerl_xs:value_of(ContentElem),
 		Sender = fipa_message:parse_sender(Document),
-		Message = #fipa_message{act = Act, sender = Sender, ontology = Ontology, content = Content},
-		io:format("-> Message: ~p~n", [Message]);
+		Receiver = fipa_message:parse_receiver(Document),
+		Message = #fipa_message{act = Act, sender = Sender, receiver = Receiver, ontology = Ontology, content = Content};
 
 	    false ->
 		%%io:format("Unknown ontology: ~s~n", [Ontology#xmlAttribute.value])
