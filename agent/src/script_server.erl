@@ -25,4 +25,3 @@ loop(Cirrocumulus, Port) ->
 	    port_command(Port, term_to_binary({echo, Data})),
 	    loop(Cirrocumulus, Port)
     end.
-

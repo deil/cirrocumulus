@@ -3,33 +3,33 @@
 -compile(export_all).
 
 start() ->
-    spawn(?MODULE, init, []).
+	spawn(?MODULE, init, []).
 
 stop(AgentPid) ->
-    AgentPid ! stop.
+	AgentPid ! stop.
 
 init() ->
-    Script = "account_monitor",
-    Brain = spawn(list_to_atom(Script), init, [self()]),
-    MessageBus = spawn(message_bus, init, [self(), Brain, Script]),
-    ScriptServer = spawn(script_server, init, [self(), Script ++ ".rb"]),
-    loop(Brain, MessageBus, ScriptServer).
+	Script = "account_monitor",
+	Brain = spawn(list_to_atom(Script), init, [self()]),
+	MessageBus = spawn(message_bus, init, [self(), Brain, Script]),
+	ScriptServer = spawn(script_server, init, [self(), Script ++ ".rb"]),
+	loop(Brain, MessageBus, ScriptServer).
 
 loop(Brain, MessageBus, ScriptServer) ->
-    receive
-        stop ->
-	    Brain ! stop,
-	    ScriptServer ! stop,
-	    MessageBus ! stop;
+	receive
+		stop ->
+			Brain ! stop,
+			ScriptServer ! stop,
+			MessageBus ! stop;
 
-	{MessageBus, message, Text} ->
-	    ScriptServer ! {process, Text},
-	    loop(Brain, MessageBus, ScriptServer);
+		{MessageBus, message, Text} ->
+			ScriptServer ! {process, Text},
+			loop(Brain, MessageBus, ScriptServer);
 	    
-	{ScriptServer, reply, Text} ->
+		{ScriptServer, reply, Text} ->
 	    MessageBus ! {message, Text},
 	    loop(Brain, MessageBus, ScriptServer);
 
-        _ ->
-    	    loop(Brain, MessageBus, ScriptServer)
-    end.
+		_ ->
+			loop(Brain, MessageBus, ScriptServer)
+	end.

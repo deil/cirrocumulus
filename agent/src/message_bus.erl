@@ -11,21 +11,21 @@
 -compile(export_all).
 
 init(Cirrocumulus, Brain, Resource) ->
-    logger:start(?MODULE),
-    application:start(exmpp),
-    MySession = exmpp_session:start(),
-    Jid = get_hostname() ++ "-" ++ Resource,
-    MyJID = exmpp_jid:make(Jid, ?Hostname, "Cirrocumulus"),
-    logger:log(?MODULE, io_lib:format("logging as ~p", [MyJID])),
-    %%io:format("MessageBus: logging as ~p~n", [MyJID]),
-    exmpp_session:auth_basic_digest(MySession, MyJID, binary_to_list(MyJID#jid.prep_node)),
-    {ok, _StreamId} = exmpp_session:connect_TCP(MySession, ?Server, ?Port),
-    session(MySession, MyJID),
-    loop(MySession, MyJID, Cirrocumulus, Brain).
+	logger:start(?MODULE),
+	application:start(exmpp),
+	MySession = exmpp_session:start(),
+	Jid = get_hostname() ++ "-" ++ Resource,
+	MyJID = exmpp_jid:make(Jid, ?Hostname, "Cirrocumulus"),
+	logger:log(?MODULE, io_lib:format("logging as ~p", [MyJID])),
+	%%io:format("MessageBus: logging as ~p~n", [MyJID]),
+	exmpp_session:auth_basic_digest(MySession, MyJID, binary_to_list(MyJID#jid.prep_node)),
+	{ok, _StreamId} = exmpp_session:connect_TCP(MySession, ?Server, ?Port),
+	session(MySession, MyJID),
+	loop(MySession, MyJID, Cirrocumulus, Brain).
 
 get_hostname() ->
-    {ok, Hostname} = inet:gethostname(),
-    Hostname.
+	{ok, Hostname} = inet:gethostname(),
+	Hostname.
 
 session(MySession, _MyJID) ->
     %% Login with defined JID / Authentication:
@@ -50,40 +50,40 @@ join_groupchat(MySession, MyJID) ->
 
 %% Process exmpp packet:
 loop(MySession, MyJID, Cirrocumulus, Brain) ->
-    Self = self(),
+	Self = self(),
 
-    receive
-        stop ->
-    	    io:format("MessageBus: stop~n"),
-            exmpp_session:stop(MySession);
+	receive
+		stop ->
+			io:format("MessageBus: stop~n"),
+			exmpp_session:stop(MySession);
 
-        {message, Text} ->
-    	    send_message(MySession, Text),
-    	    loop(MySession, MyJID, Cirrocumulus, Brain);
+		{message, Text} ->
+			send_message(MySession, Text),
+			loop(MySession, MyJID, Cirrocumulus, Brain);
 
-        %% If we receive a message, we reply with the same message
-        Record = #received_packet{packet_type=message, raw_packet=Packet} ->
-    	    %%io:format("--> ~s~n", [exmpp_xml:document_to_binary(Packet)]),
-    	    From = exmpp_xml:get_attribute(Packet, from, undefined),
-    	    HasBody = exmpp_xml:has_element(Packet, body),
-    	    MyMessage = message_from_self(From),
-    	    ShouldProcess = HasBody and not MyMessage,
-    	    case ShouldProcess of
+		Record = #received_packet{packet_type=message, raw_packet=Packet} ->
+			%%io:format("--> ~s~n", [exmpp_xml:document_to_binary(Packet)]),
+			From = exmpp_xml:get_attribute(Packet, from, undefined),
+			HasBody = exmpp_xml:has_element(Packet, body),
+			MyMessage = message_from_self(From),
+			ShouldProcess = HasBody and not MyMessage,
+			case ShouldProcess of
     		true ->
-    		    BodyElem = exmpp_xml:get_element(Packet, body),
-    		    Body = exmpp_xml:get_cdata(BodyElem),
-    		    Message = fipa_message:parse_message(Body, Brain),
-    		    logger:log(?MODULE, io_lib:format("got message -> ~p", [Message])),
-    		    Cirrocumulus ! {Self, message, Message};
-    		    %%process_message(MySession, MyJID, From, Body);
-    		_ -> false
-    	    end,
-            loop(MySession, MyJID, Cirrocumulus, Brain);
+					BodyElem = exmpp_xml:get_element(Packet, body),
+					Body = exmpp_xml:get_cdata(BodyElem),
+					Message = fipa_message:parse_message(Body, Brain),
+					logger:log(?MODULE, io_lib:format("got message -> ~p", [Message])),
+					Cirrocumulus ! {Self, message, Message};
+					%%process_message(MySession, MyJID, From, Body);
+					
+				_ -> false
+			end,
+			loop(MySession, MyJID, Cirrocumulus, Brain);
             
-        Record ->
-            %%io:format("~p~n", [Record]),
-            loop(MySession, MyJID, Cirrocumulus, Brain)
-    end.
+		Record ->
+			%%io:format("~p~n", [Record]),
+			loop(MySession, MyJID, Cirrocumulus, Brain)
+	end.
 
 message_from_self(From) ->
     Res = regexp:match(binary_to_list(From), get_hostname()),
