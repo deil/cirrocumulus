@@ -4,10 +4,6 @@
 -include("fipa_message.hrl").
 -include_lib("xmerl/include/xmerl.hrl").
 
-%%
-%% <fipa-message act="inform" ontology="/cirrocumulus-account_monitor"><content>q</content></fipa-message>
-%%
-
 is_known_ontology(OntologyAttr, Brain) ->
 	Brain ! {self(), get_ontology},
   receive
@@ -65,7 +61,7 @@ parse_message(Binary, Brain) ->
 				[Content] = xmerl_xs:value_of(ContentElem),
 				Sender = fipa_message:parse_sender(Document),
 				Receiver = fipa_message:parse_receiver(Document),
-				Message = #fipa_message{act = Act, sender = Sender, receiver = Receiver, ontology = Ontology, content = Content};
+				Message = #fipa_message{act = Act, sender = Sender, receiver = Receiver, ontology = Ontology, content = parse_content(Content)};
 
 	    false ->
 				%%io:format("Unknown ontology: ~s~n", [OntologyAttr#xmlAttribute.value]),
@@ -76,3 +72,7 @@ parse_message(Binary, Brain) ->
 	   	io:format("~nException:~p~n", [Reason]),
 	   	false
 	end.
+
+parse_content(Content) ->
+	%%list_to_tuple(lists:map(fun(X) -> list_to_atom(X) end, string:tokens(Content, [$ ]))).
+	lists:map(fun(X) -> list_to_atom(X) end, string:tokens(Content, [$ ])).

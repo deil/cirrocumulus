@@ -9,7 +9,7 @@ stop(AgentPid) ->
 	AgentPid ! stop.
 
 init() ->
-	Script = "account_monitor",
+	Script = "vu_manager",
 	Brain = spawn(list_to_atom(Script), init, [self()]),
 	MessageBus = spawn(message_bus, init, [self(), Brain, Script]),
 	ScriptServer = spawn(script_server, init, [self(), Script ++ ".rb"]),
@@ -22,8 +22,9 @@ loop(Brain, MessageBus, ScriptServer) ->
 			ScriptServer ! stop,
 			MessageBus ! stop;
 
-		{MessageBus, message, Text} ->
-			ScriptServer ! {process, Text},
+		{MessageBus, receive_message, Message} ->
+			Brain ! {process, Message},
+			%%ScriptServer ! {process, Text},
 			loop(Brain, MessageBus, ScriptServer);
 	    
 		{ScriptServer, reply, Text} ->

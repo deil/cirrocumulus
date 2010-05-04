@@ -10,6 +10,10 @@
 
 -compile(export_all).
 
+%%
+%% <fipa-message act="inform" ontology="/cirrocumulus-vu_manager"><content>reboot_vu 111</content></fipa-message>
+%%
+
 init(Cirrocumulus, Brain, Resource) ->
 	logger:start(?MODULE),
 	application:start(exmpp),
@@ -28,27 +32,26 @@ get_hostname() ->
 	Hostname.
 
 session(MySession, _MyJID) ->
-    %% Login with defined JID / Authentication:
-    try
-      exmpp_session:login(MySession)
-    catch
-      {auth_error, 'not-authorized'} ->
-	  %% Try creating a new user:
-	  io:format("Register~n", []),
-	  %% In a real life client, we should trap error case here
-	  %% and print the correct message.
-	  exmpp_session:register_account(MySession, _MyJID#jid.prep_node),
-	  %% After registration, retry to login:
-	  exmpp_session:login(MySession)
-    end,
-    exmpp_session:send_packet(MySession, exmpp_presence:set_status(exmpp_presence:available(), "Cirrocumulus")),
-    join_groupchat(MySession, _MyJID).
+	%% Login with defined JID / Authentication:
+	try
+		exmpp_session:login(MySession)
+	catch
+		{auth_error, 'not-authorized'} ->
+		  %% Try creating a new user:
+			io:format("Register~n", []),
+			%% In a real life client, we should trap error case here
+			%% and print the correct message.
+			exmpp_session:register_account(MySession, _MyJID#jid.prep_node),
+			%% After registration, retry to login:
+			exmpp_session:login(MySession)
+	end,
+	exmpp_session:send_packet(MySession, exmpp_presence:set_status(exmpp_presence:available(), "Cirrocumulus")),
+	join_groupchat(MySession, _MyJID).
 
 join_groupchat(MySession, MyJID) ->
-    Packet = exmpp_xml:set_attribute(#xmlel{name = 'presence'}, to, ?Chatroom ++ "/" ++ MyJID#jid.prep_node),
-    exmpp_session:send_packet(MySession, Packet).
+	Packet = exmpp_xml:set_attribute(#xmlel{name = 'presence'}, to, ?Chatroom ++ "/" ++ MyJID#jid.prep_node),
+	exmpp_session:send_packet(MySession, Packet).
 
-%% Process exmpp packet:
 loop(MySession, MyJID, Cirrocumulus, Brain) ->
 	Self = self(),
 
@@ -66,15 +69,14 @@ loop(MySession, MyJID, Cirrocumulus, Brain) ->
 			From = exmpp_xml:get_attribute(Packet, from, undefined),
 			HasBody = exmpp_xml:has_element(Packet, body),
 			MyMessage = message_from_self(From),
-			ShouldProcess = HasBody and not MyMessage,
+			ShouldProcess = HasBody and not MyMessage and not is_old_message(Packet),
 			case ShouldProcess of
     		true ->
 					BodyElem = exmpp_xml:get_element(Packet, body),
 					Body = exmpp_xml:get_cdata(BodyElem),
 					Message = fipa_message:parse_message(Body, Brain),
 					logger:log(?MODULE, io_lib:format("got message -> ~p", [Message])),
-					Cirrocumulus ! {Self, message, Message};
-					%%process_message(MySession, MyJID, From, Body);
+					Cirrocumulus ! {Self, receive_message, Message};
 					
 				_ -> false
 			end,
@@ -85,12 +87,15 @@ loop(MySession, MyJID, Cirrocumulus, Brain) ->
 			loop(MySession, MyJID, Cirrocumulus, Brain)
 	end.
 
+is_old_message(Packet) ->
+	exmpp_xml:has_element(Packet, x).
+
 message_from_self(From) ->
-    Res = regexp:match(binary_to_list(From), get_hostname()),
-    case Res of
-      nomatch -> false;
-      _ -> true
-    end.
+	Res = regexp:match(binary_to_list(From), get_hostname()),
+	case Res of
+		nomatch -> false;
+		_ -> true
+	end.
 
 send_message(MySession, Text) ->
     Msg = #xmlel{name = "message"},

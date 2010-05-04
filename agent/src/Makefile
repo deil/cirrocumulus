@@ -5,7 +5,7 @@
 
 ERL = erl -boot start_clean
 
-MODS = logger script_server fipa_message message_bus cirrocumulus account_monitor
+MODS = logger script_server fipa_message message_bus cirrocumulus account_monitor vu_manager
 
 all: compile
 #	${ERL} -pa '/home/joe/.../this/dir' -s module1 start
