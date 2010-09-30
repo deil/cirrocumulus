@@ -1,0 +1,8 @@
+#Sun Aug 22 00:39:39 MSD 2010
+backend_version=R13B
+eclipse.preferences.version=1
+external_includes=
+external_modules=
+include_dirs=include;exmpp/include;
+output_dir=ebin
+source_dirs=src;

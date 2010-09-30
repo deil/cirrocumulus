@@ -1,4 +1,0 @@
-agent/ebin/*.beam
-scripts/db.rb
-.project
-.settings

@@ -20,15 +20,15 @@ extract_ontology(OntologyAttr) ->
 	string:substr(OntologyAttr#xmlAttribute.value, Start+1).
 
 parse_sender(Xml) ->
-    Senders = xmerl_xs:select("/fipa-message/sender", Xml),
-    if
-	length(Senders) == 1 ->
+	Senders = xmerl_xs:select("/fipa-message/sender", Xml),
+	if
+		length(Senders) == 1 ->
 	    [Sender| _] = Senders,
 	    [NameAttr] = xmerl_xs:select("/sender/@name", Sender),
 	    #agent_identifier{name = NameAttr#xmlAttribute.value};
 
-	length(Senders) == 0 -> undefined
-    end.
+		length(Senders) == 0 -> undefined
+	end.
 
 parse_receiver(Xml) ->
 	Receivers = xmerl_xs:select("/fipa-message/receiver", Xml),

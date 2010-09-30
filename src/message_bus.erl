@@ -65,20 +65,31 @@ loop(MySession, MyJID, Cirrocumulus, Brain) ->
 			loop(MySession, MyJID, Cirrocumulus, Brain);
 
 		Record = #received_packet{packet_type=message, raw_packet=Packet} ->
-			%%io:format("--> ~s~n", [exmpp_xml:document_to_binary(Packet)]),
-			From = exmpp_xml:get_attribute(Packet, from, undefined),
-			HasBody = exmpp_xml:has_element(Packet, body),
-			MyMessage = message_from_self(From),
-			ShouldProcess = HasBody and not MyMessage and not is_old_message(Packet),
-			case ShouldProcess of
-    		true ->
-					BodyElem = exmpp_xml:get_element(Packet, body),
-					Body = exmpp_xml:get_cdata(BodyElem),
-					Message = fipa_message:parse_message(Body, Brain),
-					logger:log(?MODULE, io_lib:format("got message -> ~p", [Message])),
-					Cirrocumulus ! {Self, receive_message, Message};
+			try
+				%%io:format("--> ~s~n", [exmpp_xml:document_to_binary(Packet)]),
+				From = exmpp_xml:get_attribute(Packet, from, undefined),
+				HasBody = exmpp_xml:has_element(Packet, body),
+				MyMessage = message_from_self(From),
+				ShouldProcess = HasBody and not MyMessage and not is_old_message(Packet),
+				case ShouldProcess of
+	    		true ->
+						BodyElem = exmpp_xml:get_element(Packet, body),
+						Body = exmpp_xml:get_cdata(BodyElem),
+						Message = fipa_message:parse_message(Body, Brain),
+						if
+							Message /= false ->
+								logger:log(?MODULE, io_lib:format("got message -> ~p", [Message])),
+								Cirrocumulus ! {Self, receive_message, Message};
+							
+							true ->
+								false
+						end;
 					
-				_ -> false
+					_ -> false
+				end
+			catch
+				_:Reason ->
+					false
 			end,
 			loop(MySession, MyJID, Cirrocumulus, Brain);
             

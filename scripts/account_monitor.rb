@@ -9,7 +9,7 @@ stop = false
 thread = nil
 
 receive do |f|
-    thread = Thread.new do
+  thread = Thread.new do
 	f.send!([:result, "started account monitor"])
 	accounts = Account.all(:conditions => {:is_active => true})
 
