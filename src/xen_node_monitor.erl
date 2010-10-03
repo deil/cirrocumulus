@@ -60,6 +60,11 @@ loop(Cirrocumulus, MonScript) ->
 					false
 			end,
 	    loop(Cirrocumulus, MonScript);
+			
+		%% answer from knowledge base
+		{reply, Fact, Reply} ->
+			Cirrocumulus ! {self(), reply, Reply},
+			loop(Cirrocumulus, MonScript);
 		
 		%% incoming fact
 		{assert_fact, Fact} ->
@@ -70,7 +75,7 @@ loop(Cirrocumulus, MonScript) ->
 				
 				_ -> ok
 			end,
-	    	loop(Cirrocumulus, MonScript);
+	    loop(Cirrocumulus, MonScript);
 			
 		{retract_fact, Fact} ->
 			case eresye:query_kb(xen_node_monitor, Fact) of
@@ -80,7 +85,7 @@ loop(Cirrocumulus, MonScript) ->
 					logger:log(brain, io_lib:format("retracted fact: ~p", [Fact])),
 					eresye:retract(xen_node_monitor, Fact)
 			end,
-	    	loop(Cirrocumulus, MonScript);		
+	    loop(Cirrocumulus, MonScript);		
 	
 		_ ->
 	    	loop(Cirrocumulus, MonScript)
@@ -125,6 +130,10 @@ raid_active(Engine, {raid_active, Major, NumDevices}) ->
 	logger:log(brain, io_lib:format("active raid array: md~p", [Major])),
 	eresye:assert(Engine, {is_raid_active, Major, NumDevices}).
 
-request_vu_state(Engine, {request_vu_state, DomainId}) ->
-	eresye:retract(Engine, {request_vu_state, DomainId}),
-	logger:log(brain, io_lib:format("VU_STATE ~p", [DomainId])).
+request_vu_state(Engine, {request, vu_state, DomainId}) ->
+	eresye:retract(Engine, {request, vu_state, DomainId}),
+	logger:log(brain, io_lib:format("requested VU state for ~p", [DomainId])),
+	case eresye:query_kb(Engine, {vu_running, DomainId}) of
+		[] -> xen_node_monitor_proc ! {reply, {vu_state, DomainId}, not_running};
+		_ -> xen_node_monitor_proc ! {reply, {vu_state, DomainId}, not_running}
+	end.

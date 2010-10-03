@@ -1,9 +1,12 @@
 require 'rubygems'
 require 'erlectricity'
+require '../scripts/vu.rb'
 
 SLEEP_TIMEOUT = 10
 stop = false
 thread = nil
+
+running_vus = []
 
 receive do |f|
   thread = Thread.new do
@@ -13,8 +16,22 @@ receive do |f|
 	
     #f.send!([:result, "qweqwe"])
 
-		counter = 1
     while not stop
+	current_vus = VirtualUnit.list_running()
+	current_vus.each do |domain|
+	    if !running_vus.include? domain
+		f.send!([:assert, [:vu_running, domain]])
+	    end
+	end
+    
+	running_vus.each do |domain|
+	    if !current_vus.include? domain
+		f.send!([:retract, [:vu_running, domain]])
+	    end
+	end
+    
+	running_vus = current_vus
+    
 =begin
       xm_out = `xm list`.split("\n")
       xm_out.each_with_index do |xm, i|
@@ -36,7 +53,7 @@ receive do |f|
       end
 =end
       #f.send!([:result, "qweqwe"])
-
+=begin
 			if counter == 1
 				f.send!([:assert, [:aoe_up, "111", "1"]])
 				f.send!([:assert, [:aoe_up, "111", "2"]])
@@ -48,6 +65,7 @@ receive do |f|
 			end
 			
 			counter += 1
+=end
       sleep(SLEEP_TIMEOUT)
     end
 	

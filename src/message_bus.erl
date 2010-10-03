@@ -2,7 +2,7 @@
 
 -include_lib("exmpp.hrl").
 -include_lib("exmpp_client.hrl").
--include_lib("internal/exmpp_xmpp.hrl").
+-include_lib("exmpp_jid.hrl").
 -include_lib("xmerl/include/xmerl.hrl").
 
 -include("jabber_config.hrl").
@@ -22,7 +22,7 @@ init(Cirrocumulus, Brain, Resource) ->
 	MyJID = exmpp_jid:make(Jid, ?Hostname, "Cirrocumulus"),
 	logger:log(?MODULE, io_lib:format("logging as ~p", [MyJID])),
 	%%io:format("MessageBus: logging as ~p~n", [MyJID]),
-	exmpp_session:auth_basic_digest(MySession, MyJID, binary_to_list(MyJID#jid.prep_node)),
+	exmpp_session:auth_basic_digest(MySession, MyJID, binary_to_list(MyJID#jid.node)),
 	{ok, _StreamId} = exmpp_session:connect_TCP(MySession, ?Server, ?Port),
 	session(MySession, MyJID),
 	loop(MySession, MyJID, Cirrocumulus, Brain).
@@ -41,7 +41,7 @@ session(MySession, _MyJID) ->
 			io:format("Register~n", []),
 			%% In a real life client, we should trap error case here
 			%% and print the correct message.
-			exmpp_session:register_account(MySession, _MyJID#jid.prep_node),
+			exmpp_session:register_account(MySession, _MyJID#jid.node),
 			%% After registration, retry to login:
 			exmpp_session:login(MySession)
 	end,
@@ -49,7 +49,7 @@ session(MySession, _MyJID) ->
 	join_groupchat(MySession, _MyJID).
 
 join_groupchat(MySession, MyJID) ->
-	Packet = exmpp_xml:set_attribute(#xmlel{name = 'presence'}, to, ?Chatroom ++ "/" ++ MyJID#jid.prep_node),
+	Packet = exmpp_xml:set_attribute(#xmlel{name = 'presence'}, to, ?Chatroom ++ "/" ++ MyJID#jid.node),
 	exmpp_session:send_packet(MySession, Packet).
 
 loop(MySession, MyJID, Cirrocumulus, Brain) ->
@@ -62,6 +62,10 @@ loop(MySession, MyJID, Cirrocumulus, Brain) ->
 
 		{message, Text} ->
 			send_message(MySession, Text),
+			loop(MySession, MyJID, Cirrocumulus, Brain);
+			
+		{Cirrocumulus, send_message, Message} ->
+			send_message(MySession, "huy"),
 			loop(MySession, MyJID, Cirrocumulus, Brain);
 
 		Record = #received_packet{packet_type=message, raw_packet=Packet} ->
@@ -130,7 +134,7 @@ process_message(MySession, MyJID, From, Text) ->
     El1 = #xmlel{name = 'fipa-message'},
     El2 = exmpp_xml:set_attribute(El1, act, "inform"),
     Sender1 = #xmlel{name = 'sender'},
-    Sender = exmpp_xml:set_attribute(Sender1, name, MyJID#jid.prep_node),
+    Sender = exmpp_xml:set_attribute(Sender1, name, MyJID#jid.node),
     Ontology1 = #xmlel{name = 'ontology'},
     Ontology = exmpp_xml:set_cdata(Ontology1, "cirrocumulus"),
     El3 = exmpp_xml:append_child(El2, Sender),
