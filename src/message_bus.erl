@@ -117,12 +117,15 @@ send_fipa_message(MySession, Message=#fipa_message{}) ->
 		EmptyMsg = #xmlel{name = "fipa-message"},
 		MsgWithAct = exmpp_xml:set_attribute(EmptyMsg, act, Message#fipa_message.act),
 		MsgWithOntology = exmpp_xml:set_attribute(MsgWithAct, ontology, Message#fipa_message.ontology),
-		EmptyInReplyTo = #xmlel{name = "in-reply-to"},
-		InReplyTo = exmpp_xml:set_cdata(EmptyInReplyTo, tuple_to_list(Message#fipa_message.in_reply_to)),
-		MsgWithInReplyTo = exmpp_xml:append_child(MsgWithOntology, InReplyTo),
+		%%EmptyInReplyTo = #xmlel{name = "in-reply-to"},
+		%%InReplyTo = exmpp_xml:set_cdata(EmptyInReplyTo, tuple_to_list(Message#fipa_message.in_reply_to)),
+		%%MsgWithInReplyTo = exmpp_xml:append_child(MsgWithOntology, InReplyTo),
+		EmptyReceiver = #xmlel{name = "receiver"},
+		Receiver = exmpp_xml:set_attribute(EmptyReceiver, name, Message#fipa_message.receiver),
+		MsgWithReceiver = exmpp_xml:append_child(MsgWithOntology, Receiver),
 		EmptyContent = #xmlel{name = "content"},
 		Content = exmpp_xml:set_cdata(EmptyContent, Message#fipa_message.content),
-		MsgWithContent = exmpp_xml:append_child(MsgWithInReplyTo, Content),
+		MsgWithContent = exmpp_xml:append_child(MsgWithReceiver, Content),
 		send_message(MySession, exmpp_xml:document_to_binary(MsgWithContent)).
 
 send_message(MySession, Text) ->
