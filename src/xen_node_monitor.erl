@@ -62,8 +62,8 @@ loop(Cirrocumulus, MonScript) ->
 	    loop(Cirrocumulus, MonScript);
 			
 		%% answer from knowledge base
-		{reply, Fact, Reply} ->
-			Cirrocumulus ! {self(), reply, Fact, Reply},
+		{reply, Sender, Fact, Reply} ->
+			Cirrocumulus ! {self(), reply, Sender, Fact, Reply},
 			loop(Cirrocumulus, MonScript);
 		
 		%% incoming fact
@@ -134,6 +134,6 @@ request_vu_state(Engine, {Sender, request, vu_state, DomainId}) ->
 	eresye:retract(Engine, {Sender, request, vu_state, DomainId}),
 	logger:log(brain, io_lib:format("requested VU state for ~p from ~p", [DomainId, Sender])),
 	case eresye:query_kb(Engine, {vu_running, list_to_binary(atom_to_list(DomainId))}) of
-		[] -> xen_node_monitor_proc ! {reply, {vu_state, DomainId}, "not_running"};
-		_ -> xen_node_monitor_proc ! {reply, {vu_state, DomainId}, "running"}
+		[] -> xen_node_monitor_proc ! {reply, Sender, {vu_state, DomainId}, "not_running"};
+		_ -> xen_node_monitor_proc ! {reply, Sender, {vu_state, DomainId}, "running"}
 	end.

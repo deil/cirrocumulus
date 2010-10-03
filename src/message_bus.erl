@@ -64,8 +64,8 @@ loop(MySession, MyJID, Cirrocumulus, Brain) ->
 			send_message(MySession, Text),
 			loop(MySession, MyJID, Cirrocumulus, Brain);
 			
-		{Cirrocumulus, send_message, Message} ->
-			send_message(MySession, Message),
+		{Cirrocumulus, send_message, Receiver, InReplyTo, Reply} ->
+			send_message(MySession, tuple_to_list(#fipa_message{receiver = Receiver#agent_identifier.name, content = Reply})),
 			loop(MySession, MyJID, Cirrocumulus, Brain);
 
 		Record = #received_packet{packet_type=message, raw_packet=Packet} ->
