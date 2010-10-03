@@ -26,7 +26,7 @@ loop(Brain, MessageBus) ->
 			loop(Brain, MessageBus);
 			
 		{Brain, reply, Ontology, Sender, Fact, Reply} ->
-			MessageBus ! {self(), send_message, Ontology, Sender, Fact, Reply},
+			MessageBus ! {self(), send_message, "inform", Ontology, Sender, Fact, Reply},
 			loop(Brain, MessageBus);
 	    
 		_ ->

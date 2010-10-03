@@ -64,8 +64,8 @@ loop(MySession, MyJID, Cirrocumulus, Brain) ->
 			send_message(MySession, Text),
 			loop(MySession, MyJID, Cirrocumulus, Brain);
 			
-		{Cirrocumulus, send_message, Ontology, Receiver, InReplyTo, Reply} ->
-			send_fipa_message(MySession, #fipa_message{receiver = Receiver#agent_identifier.name,
+		{Cirrocumulus, send_message, Act, Ontology, Receiver, InReplyTo, Reply} ->
+			send_fipa_message(MySession, #fipa_message{act = Act, receiver = Receiver#agent_identifier.name,
 																ontology = Ontology, in_reply_to = InReplyTo, content = Reply}),
 			loop(MySession, MyJID, Cirrocumulus, Brain);
 
