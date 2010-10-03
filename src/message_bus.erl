@@ -117,7 +117,7 @@ send_fipa_message(MySession, Message=#fipa_message{}) ->
 		EmptyMsg = #xmlel{name = "fipa-message"},
 		MsgWithAct = exmpp_xml:set_attribute(EmptyMsg, act, Message#fipa_message.act),
 		MsgWithOntology = exmpp_xml:set_attribute(MsgWithAct, ontology, Message#fipa_message.ontology),
-		logger:log(?MODULE, io_lib:format("sending message -> ~p", [MsgWithOntology])).
+		logger:log(?MODULE, io_lib:format("sending message -> ~p", [exmpp_xml:document_to_list(MsgWithOntology)])).
 
 send_message(MySession, Text) ->
     Msg = #xmlel{name = "message"},
