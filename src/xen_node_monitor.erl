@@ -52,8 +52,8 @@ loop(Cirrocumulus, MonScript) ->
 		%% passes incoming message to our knowledge base
 		{process, Message} ->
 			try
-				Msg = list_to_tuple(lists:flatten([list_to_atom(Message#fipa_message.act), Message#fipa_message.content])),
-				logger:log(brain, io_lib:format("processing fact {~p}", [Msg])),
+				Msg = list_to_tuple(lists:flatten([Message#fipa_message.sender, list_to_atom(Message#fipa_message.act), Message#fipa_message.content])),
+				logger:log(brain, io_lib:format("processing message {~p}", [Msg])),
 				eresye:assert(xen_node_monitor, Msg)
 			catch
 				_:Reason ->
@@ -130,9 +130,9 @@ raid_active(Engine, {raid_active, Major, NumDevices}) ->
 	logger:log(brain, io_lib:format("active raid array: md~p", [Major])),
 	eresye:assert(Engine, {is_raid_active, Major, NumDevices}).
 
-request_vu_state(Engine, {request, vu_state, DomainId}) ->
-	eresye:retract(Engine, {request, vu_state, DomainId}),
-	logger:log(brain, io_lib:format("requested VU state for ~p", [DomainId])),
+request_vu_state(Engine, {Sender, request, vu_state, DomainId}) ->
+	eresye:retract(Engine, {Sender, request, vu_state, DomainId}),
+	logger:log(brain, io_lib:format("requested VU state for ~p from ~p", [DomainId, Sender])),
 	case eresye:query_kb(Engine, {vu_running, list_to_binary(atom_to_list(DomainId))}) of
 		[] -> xen_node_monitor_proc ! {reply, {vu_state, DomainId}, "not_running"};
 		_ -> xen_node_monitor_proc ! {reply, {vu_state, DomainId}, "running"}
