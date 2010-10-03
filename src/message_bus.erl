@@ -117,7 +117,13 @@ send_fipa_message(MySession, Message=#fipa_message{}) ->
 		EmptyMsg = #xmlel{name = "fipa-message"},
 		MsgWithAct = exmpp_xml:set_attribute(EmptyMsg, act, Message#fipa_message.act),
 		MsgWithOntology = exmpp_xml:set_attribute(MsgWithAct, ontology, Message#fipa_message.ontology),
-		send_message(MySession, exmpp_xml:document_to_binary(MsgWithOntology)).
+		EmptyInReplyTo = #xmlel{name = "in-reply-to"},
+		InReplyTo = exmpp_xml:set_cdata(EmptyInReplyTo, tuple_to_list(Message#fipa_message.in_reply_to)),
+		MsgWithInReplyTo = exmpp_xml:append_child(MsgWithOntology, InReplyTo),
+		EmptyContent = #xmlel{name = "content"},
+		Content = exmpp_xml:set_cdata(EmptyContent, Message#fipa_message.content),
+		MsgWithContent = exmpp_xml:append_child(MsgWithInReplyTo, Content),
+		send_message(MySession, exmpp_xml:document_to_binary(MsgWithContent)).
 
 send_message(MySession, Text) ->
     Msg = #xmlel{name = "message"},
