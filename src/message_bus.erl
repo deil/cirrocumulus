@@ -65,7 +65,7 @@ loop(MySession, MyJID, Cirrocumulus, Brain) ->
 			loop(MySession, MyJID, Cirrocumulus, Brain);
 			
 		{Cirrocumulus, send_message, Message} ->
-			send_message(MySession, "huy"),
+			send_message(MySession, Message),
 			loop(MySession, MyJID, Cirrocumulus, Brain);
 
 		Record = #received_packet{packet_type=message, raw_packet=Packet} ->

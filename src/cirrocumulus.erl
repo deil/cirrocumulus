@@ -25,7 +25,7 @@ loop(Brain, MessageBus) ->
 			Brain ! {process, Message},
 			loop(Brain, MessageBus);
 			
-		{Brain, reply, Reply} ->
+		{Brain, reply, Fact, Reply} ->
 			MessageBus ! {self(), send_message, Reply},
 			loop(Brain, MessageBus);
 	    
