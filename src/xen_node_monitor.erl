@@ -133,7 +133,7 @@ raid_active(Engine, {raid_active, Major, NumDevices}) ->
 request_vu_state(Engine, {request, vu_state, DomainId}) ->
 	eresye:retract(Engine, {request, vu_state, DomainId}),
 	logger:log(brain, io_lib:format("requested VU state for ~p", [DomainId])),
-	case eresye:query_kb(Engine, {vu_running, DomainId}) of
+	case eresye:query_kb(Engine, {vu_running, term_to_binary(DomainId)}) of
 		[] -> xen_node_monitor_proc ! {reply, {vu_state, DomainId}, "not_running"};
 		_ -> xen_node_monitor_proc ! {reply, {vu_state, DomainId}, "running"}
 	end.
