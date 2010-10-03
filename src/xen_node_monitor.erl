@@ -63,7 +63,7 @@ loop(Cirrocumulus, MonScript) ->
 			
 		%% answer from knowledge base
 		{reply, Sender, Fact, Reply} ->
-			Cirrocumulus ! {self(), reply, Sender, Fact, Reply},
+			Cirrocumulus ! {self(), reply, supported_ontology(), Sender, Fact, Reply},
 			loop(Cirrocumulus, MonScript);
 		
 		%% incoming fact
