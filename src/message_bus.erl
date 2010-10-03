@@ -120,7 +120,7 @@ send_fipa_message(MySession, Message=#fipa_message{}) ->
 		EmptyInReplyTo = #xmlel{name = "in-reply-to"},
 		InReplyTo = exmpp_xml:set_cdata(EmptyInReplyTo,
 			string:join(lists:map(fun(X) -> atom_to_list(X) end, tuple_to_list(Message#fipa_message.in_reply_to)),
-			[$ ]),
+			[$ ])),
 		MsgWithInReplyTo = exmpp_xml:append_child(MsgWithOntology, InReplyTo),
 		EmptyReceiver = #xmlel{name = "receiver"},
 		Receiver = exmpp_xml:set_attribute(EmptyReceiver, name, Message#fipa_message.receiver),
