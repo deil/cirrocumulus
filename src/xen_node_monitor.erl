@@ -25,6 +25,10 @@
 supported_ontology() ->
 	"cirrocumulus-xen_node_monitor".
 
+%%
+%% <fipa-message act="query-ref" ontology="/cirrocumulus-xen_node_monitor"><sender name="deil"/><content>vu_state 111</content></fipa-message>
+%%
+
 init(Cirrocumulus) ->
 	eresye:start(xen_node_monitor),
 	eresye:add_rule(xen_node_monitor, {xen_node_monitor, aoe_up_for_active_raid}),
@@ -50,6 +54,12 @@ loop(Cirrocumulus, MonScript) ->
 	    	loop(Cirrocumulus, MonScript);
 			
 		%% passes incoming message to our knowledge base
+		{process, Message = #fipa_message{act = "query-ref", sender = Sender, ontology = _, content = Content, in_reply_to = Irt, receiver = _}} ->
+			logger:log(brain, io_lib:format("query-ref: ~p", [Content])),
+			Fact = list_to_tuple(Content),
+			Knowledge = eresye:query_kb(xen_node_monitor, Fact),
+			logger:log(brain, io_lib:format("KB: ~p", [list_to_tuple(Knowledge)]));
+			
 		{process, Message} ->
 			try
 				Msg = list_to_tuple(lists:flatten([Message#fipa_message.sender, list_to_atom(Message#fipa_message.act), Message#fipa_message.content])),
