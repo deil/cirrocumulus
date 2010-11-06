@@ -50,15 +50,16 @@ loop(Cirrocumulus, MonScript) ->
 	    	io:format("Brain: stop~n", []);
 	
 		{Sender, get_ontology} ->
-	    	Sender ! {get_ontology, supported_ontology()},
-	    	loop(Cirrocumulus, MonScript);
+			Sender ! {get_ontology, supported_ontology()},
+			loop(Cirrocumulus, MonScript);
 			
 		%% passes incoming message to our knowledge base
 		{process, Message = #fipa_message{act = "query-ref", sender = Sender, ontology = _, content = Content, in_reply_to = Irt, receiver = _}} ->
 			logger:log(brain, io_lib:format("query-ref: ~p", [Content])),
 			Fact = list_to_tuple(Content),
 			Knowledge = eresye:query_kb(xen_node_monitor, Fact),
-			logger:log(brain, io_lib:format("KB: ~p", [list_to_tuple(Knowledge)]));
+			logger:log(brain, io_lib:format("KB: ~p", [list_to_tuple(Knowledge)])),
+			loop(Cirrocumulus, MonScript);
 			
 		{process, Message} ->
 			try
