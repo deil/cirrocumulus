@@ -18,9 +18,9 @@ loop(Master, Script, Port) ->
 	    
 		{Port, {data, Data}} ->
 			%%logger:log(list_to_atom(Script), io_lib:format("~p", [Data])),
-	    	Message = binary_to_term(Data),
+			Message = lists:map(fun(X) -> binary_to_list(list_to_atom(X)) end, binary_to_term(Data)),
 			parse_reply(Message, Master, Script, Self),					
-	    	loop(Master, Script, Port);
+			loop(Master, Script, Port);
 	    
 		{process, Data} ->
 			logger:log(list_to_atom(Script), io_lib:format("sending: ~p", [Data])),

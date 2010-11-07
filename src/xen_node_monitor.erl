@@ -55,8 +55,8 @@ loop(Cirrocumulus, MonScript) ->
 			
 		%% passes incoming message to our knowledge base
 		{process, Message = #fipa_message{act = "query-ref", sender = Sender, ontology = _, content = Content, in_reply_to = Irt, receiver = _}} ->
-			logger:log(brain, io_lib:format("query-ref: ~p", [Content])),
 			Fact = list_to_tuple(Content),
+			logger:log(brain, io_lib:format("query-ref: ~p", [Fact])),
 			Knowledge = eresye:query_kb(xen_node_monitor, Fact),
 			logger:log(brain, io_lib:format("KB: ~p", [list_to_tuple(Knowledge)])),
 			loop(Cirrocumulus, MonScript);
@@ -101,6 +101,9 @@ loop(Cirrocumulus, MonScript) ->
 		_ ->
 	    	loop(Cirrocumulus, MonScript)
 	end.
+
+head([]) -> nil;
+head([Head|Tail]) -> Head;
 
 %%
 %% knowledge base definition

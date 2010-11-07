@@ -20,13 +20,13 @@ receive do |f|
 	current_vus = VirtualUnit.list_running()
 	current_vus.each do |domain|
 	    if !running_vus.include? domain
-		f.send!([:assert, [:vu_running, domain]])
+		f.send!([:assert, ["vu_running", domain]])
 	    end
 	end
     
 	running_vus.each do |domain|
 	    if !current_vus.include? domain
-		f.send!([:retract, [:vu_running, domain]])
+		f.send!([:retract, ["vu_running", domain]])
 	    end
 	end
     
