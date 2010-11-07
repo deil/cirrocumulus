@@ -102,9 +102,6 @@ loop(Cirrocumulus, MonScript) ->
 	    	loop(Cirrocumulus, MonScript)
 	end.
 
-head([]) -> nil;
-head([Head|Tail]) -> Head;
-
 %%
 %% knowledge base definition
 %%
