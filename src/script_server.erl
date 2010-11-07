@@ -31,10 +31,10 @@ loop(Master, Script, Port) ->
 parse_reply(Message, Master, Script, Self) ->
 	logger:log(list_to_atom(Script), io_lib:format("received: ~p", [Message])),
 	case Message of
-		{<<"assert">>, InfoMessage} ->
+		{assert, InfoMessage} ->
 			Master ! {assert_fact, InfoMessage};
 			
-		{<<"retract">>, InfoMessage} ->
+		{retract, InfoMessage} ->
 			Master ! {retract_fact, InfoMessage};
 			
 		Other ->
