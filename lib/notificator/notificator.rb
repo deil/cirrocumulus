@@ -3,9 +3,10 @@ require 'xmpp4r'
 require 'xmpp4r-simple'
 require 'active_support'
 require 'systemu'
+require '../cm/jabber_config.rb'
 
-im = Jabber::Simple.new("h2-notificator@o1host.net", "h2-notificator")
-im.send!("<presence to='cirrocumulus@conference.o1host.net/h2-notificator' />")
+im = Jabber::Simple.new("h2-notificator@#{JABBER_SERVER}", "h2-notificator")
+im.send!("<presence to='#{JABBER_CONFERENCE}/h2-notificator' />")
 
 # <fipa-message act="propose" ontology="/cirrocumulus-notifications"><content>vu_state c60871c47d9811de9fdf173756d89593</content></fipa-message>
 
