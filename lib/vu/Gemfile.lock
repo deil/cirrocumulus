@@ -1,0 +1,26 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    activerecord (2.3.11)
+      activesupport (= 2.3.11)
+    activesupport (2.3.11)
+    daemons (1.1.0)
+    log4r (1.1.9)
+    mysql (2.8.1)
+    sexpistol (0.0.7)
+    xmpp4r (0.5)
+    xmpp4r-simple (0.8.8)
+      xmpp4r (>= 0.3.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  activerecord (= 2.3.11)
+  activesupport (= 2.3.11)
+  daemons
+  log4r
+  mysql
+  sexpistol
+  xmpp4r
+  xmpp4r-simple

@@ -10,6 +10,8 @@ require "#{AGENT_ROOT}/../cm/kb.rb"
 require "#{AGENT_ROOT}/../cm/cirrocumulus.rb"
 require "#{AGENT_ROOT}/xen_node.rb"
 require "#{AGENT_ROOT}/raid.rb"
+require "#{AGENT_ROOT}/raid_assemble_saga.rb"
+require "#{AGENT_ROOT}/raid_create_saga.rb"
 
 class DomUKb < Kb
   def collect_knowledge()
