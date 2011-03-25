@@ -1,0 +1,3 @@
+= Cirrocumulus
+
+Cirrocumulus is an agent-based (cloud) infrastructure management system. Each agent, running on a host, is responsible for its own problem and cooperates with the rest via XMPP as a transport and FIPA-ACL messages as a protocol.
