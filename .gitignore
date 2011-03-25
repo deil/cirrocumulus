@@ -1,3 +1,1 @@
-.settings/
-.project
-ebin/*.beam
+lib/cm/jabber_config.rb
