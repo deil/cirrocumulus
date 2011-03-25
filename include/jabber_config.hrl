@@ -1,4 +1,0 @@
--define(Server, "89.223.109.31").
--define(Port, 5222).
--define(Hostname, "hc001.o1host.net").
--define(Chatroom, "cirrocumulus@conference.o1host.net").
