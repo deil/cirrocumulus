@@ -30,6 +30,8 @@ require "#{AGENT_ROOT}/storage_disks_vps_configuration.rb"
 
 class VpsAgent < Agent
   def initialize(cm)
+    super
+
     ActiveRecord::Base.establish_connection(
       :adapter => 'mysql',
       :host => '172.16.11.5',
@@ -40,22 +42,12 @@ class VpsAgent < Agent
     )
 
     @cm = cm
-    @sagas = []
-    @saga_idx = 0
     @default_ontology = 'cirrocumulus-vps'
     Log4r::Logger['agent'].info 'initialized VpsAgent'
   end
   
   def handles_ontology?(ontology)
     super(ontology) || ontology == 'cirrocumulus-xen'
-  end
-  
-  def tick()
-    @sagas.each do |saga|
-      next if saga.is_finished?
-      saga.timeout -= 1 if saga.timeout > 0
-      saga.handle(nil) if saga.timeout == 0
-    end
   end
 
   def handle(message, kb)

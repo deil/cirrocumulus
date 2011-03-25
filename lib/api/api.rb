@@ -44,6 +44,8 @@ class ApiAgent < Agent
   end
   
   def tick()
+    super
+
     ActiveRecord::Base.transaction do
       requests = ApiRequest.all(:conditions => {:is_finished => false, :is_sent => false})
       requests.each do |request|
