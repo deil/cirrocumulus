@@ -1,3 +1,8 @@
 = Cirrocumulus
 
 Cirrocumulus is an agent-based (cloud) infrastructure management system. Each agent, running on a host, is responsible for its own problem and cooperates with the rest via XMPP as a transport and FIPA-ACL messages as a protocol.
+
+== Dependencies
+
+Cirrocumulus uses Bundler for each agent's dependencies.
+Among others, they depend on Sexpistol gem (for S-EXP parsing). This gem should be specially patched because of unconvenient handling of strings.
