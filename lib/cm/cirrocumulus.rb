@@ -69,7 +69,7 @@ class Cirrocumulus
     @im.send!("<message type=\"groupchat\" to=\"cirrocumulus@conference.o1host.net\" id=\"aaefa\"><body>#{msg.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;')}</body></message>")
   end
 
-  def run(agent, kb)
+  def run(agent, kb, sniff = false)
     s = Sexpistol.new
 
     loop do
@@ -85,7 +85,7 @@ class Cirrocumulus
           if (agent.handles_ontology? ontology)
             sender = message.from.resource
             receiver = xml['receiver']
-            if receiver.nil? || receiver == '' || receiver == @jid
+            if sniff || receiver.nil? || receiver == '' || receiver == @jid
               act = xml['act']
               content_raw = xml['content']
               content = s.parse_string(content_raw)
@@ -112,4 +112,3 @@ class Cirrocumulus
     @im.disconnect
   end
 end
-
