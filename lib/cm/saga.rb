@@ -5,6 +5,7 @@ class Saga
   attr_accessor :timeout
 
   DEFAULT_TIMEOUT = 15
+  LONG_TIMEOUT = 60
   
   STATE_ERROR = -1
   STATE_START = 0

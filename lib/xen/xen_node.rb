@@ -48,7 +48,13 @@ class XenNode
   end
 
   def self.start(xml_config)
-    _, res = systemu "virsh create #{xml_config}"
+    cmd = "virsh create #{xml_config}"
+    puts cmd
+    _, out, err = systemu(cmd)
+    puts out
+    puts err
+    
+    err.blank?
   end
 
   def self.restart(domU)
@@ -56,7 +62,13 @@ class XenNode
   end
 
   def self.stop(domU)
-    _, res = systemu "virsh destroy #{domU}"
+    cmd = "virsh destroy #{domU}"
+    puts cmd
+    _, out, err = systemu(cmd)
+    puts out
+    puts err
+    
+    err.blank?
   end
   
   def self.attach_disk(domU, disk_number, block_device)

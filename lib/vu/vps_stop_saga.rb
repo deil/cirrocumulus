@@ -2,7 +2,9 @@ class VpsStopSaga < Saga
   attr_reader :vps_id
 
   STATE_CHECK_RUNNING = 1
-  STATE_STOP_DOMU = 3
+  STATE_STOP_DOMU = 2
+  STATE_WAITING_FOR_REPLY = 3
+  STATE_STOPPING_RAID = 4
 
   def start(vps_id, context)
     @context = context
@@ -22,17 +24,41 @@ class VpsStopSaga < Saga
           finish()
         else
           status = message.content.first
-          #if status == :not
-            #notify_not_running()
-            #finish()
           if status == :running
             @selected_node = message.sender
             stop_domu()
-            update_vps_state()
-            notify_finished()
-            finish()
-          #else
-            #error()
+            change_state(STATE_WAITING_FOR_REPLY)
+            set_timeout(DEFAULT_TIMEOUT)
+          end
+        end
+        
+      when STATE_WAITING_FOR_REPLY
+        if message.nil?
+          Log4r::Logger['agent'].warn "#{@selected_node} didn't confirm domU stop, failure [#{id}]"
+          notify_failure(:node_not_responsing)
+          error()
+        else
+         if message.act == 'inform'
+           Log4r::Logger['agent'].info "VPS successfully stopped [#{id}]"
+           update_vps_state()
+           stop_vps_raids()
+           change_state(STATE_STOPPING_RAID)
+           set_timeout(DEFAULT_TIMEOUT)
+         elsif message.act == 'failure'
+           Log4r::Logger['agent'].warn "failed to stop domU [#{id}]"
+           notify_failure(:unknown_error)
+           error()
+         end
+        end
+        
+      when STATE_STOPPING_RAID
+        if message.nil?
+          Log4r::Logger['agent'].warn "#{@selected_node} didn't confirm RAID stop, but VPS successully stopped [#{id}]"
+          notify_finished()
+          finish()
+        else
+          if message.act == 'inform'
+          elsif message.act == 'failure'
           end
         end
     end
@@ -63,6 +89,29 @@ class VpsStopSaga < Saga
     message.receiver = @selected_node
     @cm.send(message)
   end
+  
+  def stop_vps_raids()
+    @queued_raids = []
+    @vps.storage_disks.each do |disk|
+      msg = Cirrocumulus::Message.new(nil, 'request', Sexpistol.new.to_sexp([
+        :stop, [:raid, disk.disk_number]
+      ]))
+      msg.ontology = 'cirrocumulus-xen'
+      msg.receiver = @selected_node
+      msg.reply_with = @id
+      @cm.send(msg)
+      @queued_raids << {:disk_number => disk.disk_number, :stopped => false}
+    end
+  end
+  
+  def notify_failure(reason)
+    msg = Cirrocumulus::Message.new(nil, 'failure', Sexpistol.new.to_sexp([[:stop_vps, [:id, @vps.id]], [reason]]))
+    msg.ontology = @agent.default_ontology
+    msg.receiver = @context.sender
+    msg.in_reply_to = @context.reply_with
+    @cm.send(msg)
+  end
+  
 
   def notify_not_running()
     msg = Cirrocumulus::Message.new(nil, 'refuse', Sexpistol.new.to_sexp([[:stop_vps, [:id, @vps.id]], [:not_running]]))

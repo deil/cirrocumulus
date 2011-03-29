@@ -145,7 +145,19 @@ class XenAgent < Agent
           if obj.first == :domu
             domU_config = message.content.second
             domU_name = domU_config.second.second
-            XenNode::stop(domU_name)
+            if XenNode::stop(domU_name)
+              msg = Cirrocumulus::Message.new(nil, 'inform', Sexpistol.new.to_sexp([message.content, [:finished]]))
+              msg.ontology = @default_ontology
+              msg.receiver = message.sender
+              msg.in_reply_to = message.reply_with
+              @cm.send(msg)
+            else
+              msg = Cirrocumulus::Message.new(nil, 'failure', Sexpistol.new.to_sexp([message.content, [:unknown_reason]]))
+              msg.ontology = @default_ontology
+              msg.receiver = message.sender
+              msg.in_reply_to = message.reply_with
+              @cm.send(msg)
+            end
           elsif obj.first == :raid
             start_raid_stop_saga(obj.second.to_i, message)
           end
@@ -198,7 +210,13 @@ class XenAgent < Agent
               XenNode::start(xml_config)
 
               if !XenNode::list_running_domUs().include? domU_name
-                msg = Cirrocumulus::Message.new(nil, 'failure', Sexpistol.new.to_sexp(message.content))
+                msg = Cirrocumulus::Message.new(nil, 'failure', Sexpistol.new.to_sexp([message.content, [:unknown_reason]]))
+                msg.ontology = @default_ontology
+                msg.receiver = message.sender
+                msg.in_reply_to = message.reply_with
+                @cm.send(msg)
+              else
+                msg = Cirrocumulus::Message.new(nil, 'inform', Sexpistol.new.to_sexp([message.content, [:finished]]))
                 msg.ontology = @default_ontology
                 msg.receiver = message.sender
                 msg.in_reply_to = message.reply_with
