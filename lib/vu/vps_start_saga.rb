@@ -4,10 +4,8 @@ class VpsStartSaga < Saga
   STATE_CHECKING_IF_ALREADY_RUNNING = 1
   STATE_SEARCHING_SUITABLE_NODE = 2
   STATE_CHECKING_STORAGE = 3
-  STATE_STOPPING_ACTIVE_RAID = 4
-  STATE_CHECKING_EXPORTS = 5
-  STATE_ASSEMBLING_RAID = 6
-  STATE_STARTING_DOMU = 7
+  STATE_ASSEMBLING_RAID = 4
+  STATE_STARTING_DOMU = 5
 
   def start(vps_id, context)
     @context = context
@@ -69,24 +67,12 @@ class VpsStartSaga < Saga
                 start_domu_on_selected_node()
                 set_timeout(DEFAULT_TIMEOUT*2)
               else
-                Log4r::Logger['agent'].debug "stopping RAID on other nodes (if running) [#{id}]"
-                change_state(STATE_STOPPING_ACTIVE_RAID)
-                stop_raid()
-                change_state(STATE_CHECKING_EXPORTS)
-                check_aoe_exports()
+                Log4r::Logger['agent'].debug "assembling RAID devices [#{id}]"
+                start_raid()
+                change_state(STATE_ASSEMBLING_RAID)
+                set_timeout(DEFAULT_TIMEOUT)
               end
             end
-          end
-        end
-        
-      when STATE_CHECKING_EXPORTS
-        if message.nil?
-        elsif message.sender == @selected_node[:name]
-          if message.content.first == :'=' && message.content[1].first == :state
-            exports = message.content[2]
-            Log4r::Logger['agent'].debug "selected node has AoE exports visible: " + exports.join(',') + " [#{id}]"
-            start_raid(exports)
-            change_state(STATE_ASSEMBLING_RAID)
           end
         end
         
@@ -174,22 +160,8 @@ class VpsStartSaga < Saga
     @cm.send(msg)
   end
 
-  def stop_raid()
-    msg = Cirrocumulus::Message.new(nil, 'request', Sexpistol.new.to_sexp([:stop, [:raid, @vps.storage_disks.first.disk_number]]))
-    msg.ontology = 'cirrocumulus-xen'
-    @cm.send(msg)
-  end
-  
-  def check_aoe_exports()
-    msg = Cirrocumulus::Message.new(nil, 'query-ref', Sexpistol.new.to_sexp([:state, [:aoe, @vps.storage_disks.first.disk_number]]))
-    msg.ontology = 'cirrocumulus-xen'
-    msg.receiver = @selected_node[:name]
-    msg.reply_with = "#{id}"
-    @cm.send(msg)
-  end
-  
-  def start_raid(exports)
-    msg = Cirrocumulus::Message.new(nil, 'request', Sexpistol.new.to_sexp([:start, [:raid, [:id, @vps.storage_disks.first.disk_number], [:exports, exports]]]))
+  def start_raid()
+    msg = Cirrocumulus::Message.new(nil, 'request', Sexpistol.new.to_sexp([:start, [:raid, @vps.storage_disks.first.disk_number]]))
     msg.ontology = 'cirrocumulus-xen'
     msg.receiver = @selected_node[:name]
     msg.reply_with = "#{id}"
