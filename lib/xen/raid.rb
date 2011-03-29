@@ -28,7 +28,7 @@ class Raid
     _, out, err = systemu(cmd)
     puts out
     puts err
-    return err.blank?
+    return err.blank? || err.include?("stopped ")
   end
   
   def self.assemble_raid(disk_id, exports)

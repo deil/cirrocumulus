@@ -4,11 +4,9 @@ class DiskAttachSaga < Saga
   attr_reader :block_device
 
   STATE_SEARCHING_NODE = 1
-  STATE_CHECKING_EXPORTS = 2
-  STATE_STOPPING_ACTIVE_RAID = 3
-  STATE_CHECKING_EXPORTS = 4
-  STATE_ASSEMBLING_RAID = 5
-  STATE_WAITING_FOR_REPLY = 6
+  STATE_STOPPING_ACTIVE_RAID = 2
+  STATE_ASSEMBLING_RAID = 3
+  STATE_WAITING_FOR_REPLY = 4
 
   def start(vps_id, disk_number, block_device, context)
     @context = context
@@ -34,8 +32,8 @@ class DiskAttachSaga < Saga
         if message.nil? # timeout
           if @selected_node
             stop_active_raid()
-            check_aoe_exports()
-            change_state(STATE_CHECKING_EXPORTS)
+            start_raid()
+            change_state(STATE_ASSEMBLING_RAID)
             set_timeout(DEFAULT_TIMEOUT)
           else
             Log4r::Logger['agent'].warn "VPS=#{@vps_id} is not running. Stop [#{id}]"
@@ -49,31 +47,23 @@ class DiskAttachSaga < Saga
            set_timeout(1)
          end
         end
-        
-      when STATE_CHECKING_EXPORTS
-        if message.nil? # timeout
-          Log4r::Logger['agent'].warn "Unable to get AoE exports list. Node is not responding. Stop [#{id}]"
-          notify_failure(:node_not_responding)
-          error()
-        elsif message.sender == @selected_node
-          if message.content.first == :'=' && message.content[1].first == :state
-            exports = message.content[2]
-            Log4r::Logger['agent'].debug "selected node has this AoE exports visible: " + exports.join(',') + " [#{id}]"
-            start_raid(exports)
-            set_timeout(DEFAULT_TIMEOUT)
-            change_state(STATE_ASSEMBLING_RAID)
-          end
-        end
-        
+
       when STATE_ASSEMBLING_RAID
         if message.nil? # timeout
           Log4r::Logger['agent'].warn "Unable to assemble RAID. Node is not responding. Stop [#{id}]"
           notify_failure(:node_not_responding)
           error()
         else
-          attach_disk()
-          change_state(STATE_WAITING_FOR_REPLY)
-          set_timeout(DEFAULT_TIMEOUT)
+          if message.act == 'inform'
+            Log4r::Logger['agent'].debug "node replied, attaching disk [#{id}]"
+            attach_disk()
+            change_state(STATE_WAITING_FOR_REPLY)
+            set_timeout(DEFAULT_TIMEOUT)
+          elsif message.act == 'failure'
+            Log4r::Logger['agent'].warn "failed to assemble RAID on #{@selected_node}, stop. [#{id}]"
+            notify_failure(:unknown_error)
+            error()
+          end
         end
 
       when STATE_WAITING_FOR_REPLY
@@ -106,21 +96,12 @@ class DiskAttachSaga < Saga
   
   def stop_active_raid()
     message = Cirrocumulus::Message.new(nil, 'request', Sexpistol.new.to_sexp([:stop, [:raid, @disk_number]]))
-    message.reply_with = @id
     message.ontology = 'cirrocumulus-xen'
     @cm.send(message)
   end
   
-  def check_aoe_exports()
-    msg = Cirrocumulus::Message.new(nil, 'query-ref', Sexpistol.new.to_sexp([:state, [:aoe, @disk_number]]))
-    msg.ontology = 'cirrocumulus-xen'
-    msg.receiver = @selected_node[:name]
-    msg.reply_with = "#{id}"
-    @cm.send(msg)
-  end
-  
-  def start_raid(exports)
-    msg = Cirrocumulus::Message.new(nil, 'request', Sexpistol.new.to_sexp([:start, [:raid, [:id, @disk_number], [:exports, exports]]]))
+  def start_raid()
+    msg = Cirrocumulus::Message.new(nil, 'request', Sexpistol.new.to_sexp([:start, [:raid, @disk_number]]))
     msg.ontology = 'cirrocumulus-xen'
     msg.receiver = @selected_node
     msg.reply_with = "#{id}"

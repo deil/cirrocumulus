@@ -30,7 +30,7 @@ require "#{AGENT_ROOT}/storage_disks_vps_configuration.rb"
 
 class VpsAgent < Agent
   def initialize(cm)
-    super
+    super()
 
     ActiveRecord::Base.establish_connection(
       :adapter => 'mysql',
@@ -89,15 +89,16 @@ class VpsAgent < Agent
           
           start_disk_attach_saga(vps_id, disk_number, block_device, message.context)
         elsif action == :detach_disk
-          vps_id = block_device = nil
+          vps_id = block_device = disk_number = nil
           params = message.content
           params.each do |par|
             next unless par.is_a? Array
             vps_id = par.second.to_i if par.first == :vps_id
+            disk_number = par.second.to_i if par.first == :disk_number
             block_device = par.second if par.first == :block_device
           end
 
-          start_disk_detach_saga(vps_id, block_device, message.context)
+          start_disk_detach_saga(vps_id, disk_number, block_device, message.context)
         end
 
       when 'query-ref' then
@@ -119,12 +120,12 @@ class VpsAgent < Agent
     saga.start(vps_id, disk_number, block_device, context)
   end
 
-  def start_disk_detach_saga(vps_id, block_device, context)
+  def start_disk_detach_saga(vps_id, disk_number, block_device, context)
     @saga_idx += 1
     id = "disk-detach-#{@saga_idx}"
     saga = DiskDetachSaga.new(id, @cm, self)
     @sagas << saga
-    saga.start(vps_id, block_device, context)
+    saga.start(vps_id, disk_number, block_device, context)
   end
 
   def start_saga(vps_id, context)
