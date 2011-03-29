@@ -8,9 +8,10 @@ class Agent
 
   def tick()
     @sagas.each do |saga|
-    next if saga.is_finished?
-    saga.timeout -= 1 if saga.timeout > 0
-    saga.handle(nil) if saga.timeout == 0
+      next if saga.is_finished?
+      saga.timeout -= 1 if saga.timeout > 0
+      saga.handle(nil) if saga.timeout == 0
+    end
   end
 
   def handles_ontology?(ontology)

@@ -6,11 +6,13 @@ require 'systemu'
 require 'sexpistol'
 require "#{AGENT_ROOT}/../cm/logger.rb"
 require "#{AGENT_ROOT}/../cm/agent.rb"
+require "#{AGENT_ROOT}/../cm/saga.rb"
 require "#{AGENT_ROOT}/../cm/kb.rb"
 require "#{AGENT_ROOT}/../cm/cirrocumulus.rb"
 require "#{AGENT_ROOT}/xen_node.rb"
 require "#{AGENT_ROOT}/raid.rb"
 require "#{AGENT_ROOT}/raid_assemble_saga.rb"
+require "#{AGENT_ROOT}/raid_stop_saga.rb"
 require "#{AGENT_ROOT}/raid_create_saga.rb"
 
 class DomUKb < Kb
@@ -28,6 +30,7 @@ end
 
 class XenAgent < Agent
   def initialize(cm)
+    super()
     @cm = cm
     @default_ontology = 'cirrocumulus-xen'
     XenNode::set_cpu(0, 10000, 0)
@@ -144,8 +147,7 @@ class XenAgent < Agent
             domU_name = domU_config.second.second
             XenNode::stop(domU_name)
           elsif obj.first == :raid
-            disk_id = obj.second.second.to_i
-            Raid::stop_raid(disk_id)
+            start_raid_stop_saga(obj.second.to_i, message)
           end
         elsif action == :start
           obj = message.content.second
@@ -204,35 +206,29 @@ class XenAgent < Agent
               end
             end
           elsif obj.first == :raid
-            disk_id = 0
-            exports = []
-            obj.each do |cfg|
-              next if !cfg.is_a? Array
-              
-              if cfg.first == :id
-                disk_id = cfg.second.to_i
-              elsif cfg.first == :exports
-                exports = cfg.second
-              end
-            end
-
-            if Raid::assemble_raid(disk_id, exports)
-              msg = Cirrocumulus::Message.new(nil, 'inform', Sexpistol.new.to_sexp([[:start, [:raid, [:id, disk_id], [:exports, exports]]], [:finished]]))
-              msg.ontology = @default_ontology
-              msg.receiver = message.sender
-              msg.in_reply_to = message.reply_with
-              @cm.send(msg)
-            else
-              msg = Cirrocumulus::Message.new(nil, 'failure', Sexpistol.new.to_sexp(message.content))
-              msg.ontology = @default_ontology
-              msg.receiver = message.sender
-              msg.in_reply_to = message.reply_with
-              @cm.send(msg)
-            end
+            start_raid_assemble_saga(obj.second.to_i, message)
           end
         end
     end
 
+  end
+  
+  private
+  
+  def start_raid_assemble_saga(disk_number, message)
+    @saga_idx += 1
+    saga_id = "xen-assemble-raid-#{@saga_idx}"
+    saga = RaidAssembleSaga.new(saga_id, @cm, self)
+    @sagas << saga
+    saga.start(disk_number, message.context)
+  end
+  
+  def start_raid_stop_saga(disk_number, message)
+    @saga_idx += 1
+    saga_id = "xen-stop-raid-#{@saga_idx}"
+    saga = RaidStopSaga.new(saga_id, @cm, self)
+    @sagas << saga
+    saga.start(disk_number, message.context)
   end
 end
 

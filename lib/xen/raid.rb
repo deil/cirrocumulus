@@ -23,13 +23,19 @@ class Raid
   end
   
   def self.stop_raid(disk_id)
-    _, out, err = systemu "mdadm -S /dev/md#{disk_id}"
+    cmd = "mdadm -S /dev/md#{disk_id}"
+    puts cmd
+    _, out, err = systemu(cmd)
+    puts out
+    puts err
     return err.blank?
   end
   
   def self.assemble_raid(disk_id, exports)
     devices = exports.map {|e| "/dev/etherd/" + e}
-    _, out, err = systemu "mdadm --assemble /dev/md#{disk_id} " + devices.join(' ') + " --run"
+    cmd = "mdadm --assemble /dev/md#{disk_id} " + devices.join(' ') + " --run"
+    puts cmd
+    _, out, err = systemu(cmd)
     puts out
     puts err
     err.blank? || err.include?("has been started")
