@@ -31,7 +31,7 @@ class Saga
   end
 
   def set_timeout(secs)
-    Log4r::Logger['agent'].debug "waiting for #{secs} second(s) [#{id}]"
+    Log4r::Logger['agent'].debug "waiting for #{secs} second(s) [#{id}]" if secs > 1
     @timeout = secs*2
   end
   

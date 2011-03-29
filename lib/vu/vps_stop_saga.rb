@@ -16,7 +16,7 @@ class VpsStopSaga < Saga
     check_running()
   end
 
-  def handle(message)
+  def handle(message = nil)
     case @state
       when STATE_CHECK_RUNNING
         if message.nil?
@@ -53,12 +53,35 @@ class VpsStopSaga < Saga
         
       when STATE_STOPPING_RAID
         if message.nil?
-          Log4r::Logger['agent'].warn "#{@selected_node} didn't confirm RAID stop, but VPS successully stopped [#{id}]"
+          if @queued_raids.all? {|r| r[:stopped]}
+            Log4r::Logger['agent'].info "all RAID disks are successfully stopped [#{id}]"
+          else
+            Log4r::Logger['agent'].warn "#{@selected_node} didn't confirm RAID stop, but VPS successully stopped [#{id}]"
+          end
+          
           notify_finished()
           finish()
         else
           if message.act == 'inform'
+            action = message.content.first
+            status = message.content.second # :finished
+            obj = action.second.first
+            disk_number = action.second.second.to_i
+            raid = @queued_raids.find {|r| r[:disk_number] == disk_number}
+            raid[:stopped] = true
+            Log4r::Logger['agent'].debug "/dev/md#{raid[:disk_number]} stopped [#{id}]"
+            
+            if @queued_raids.all? {|r| r[:stopped]}
+              clear_timeout()
+              set_timeout(1)
+            end
           elsif message.act == 'failure'
+            action = message.content
+            obj = action.second.first
+            disk_number = action.second.second.to_i
+            raid = @queued_raids.find {|r| r[:disk_number] == disk_number}
+            raid[:stopped] = false
+            Log4r::Logger['agent'].warn "/dev/md#{raid[:disk_number]} failed to stop [#{id}]"
           end
         end
     end
