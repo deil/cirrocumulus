@@ -4,8 +4,8 @@ class QueryVpsStatusSaga < Saga
   STATE_CHECK_RUNNING = 1
 
   def start(vps_id, context)
-    @vps_id = vps_id
     @context = context
+    @vps_id = vps_id
     Log4r::Logger['agent'].info "query VPS state id=#{@vps_id} [#{id}]"
 
     @vps = VpsConfiguration.find(@vps_id) if VpsConfiguration.exists? @vps_id

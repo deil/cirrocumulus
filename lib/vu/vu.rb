@@ -13,6 +13,7 @@ require "#{AGENT_ROOT}/vps_start_saga.rb"
 require "#{AGENT_ROOT}/vps_stop_saga.rb"
 require "#{AGENT_ROOT}/vps_restart_saga.rb"
 require "#{AGENT_ROOT}/query_vps_status_saga.rb"
+require "#{AGENT_ROOT}/ping_vpses_saga.rb"
 require "#{AGENT_ROOT}/disk_attach_saga.rb"
 require "#{AGENT_ROOT}/disk_detach_saga.rb"
 require "#{AGENT_ROOT}/storage_disk_history.rb"
@@ -29,6 +30,9 @@ require "#{AGENT_ROOT}/storage_disks_vps_configuration.rb"
 #
 
 class VpsAgent < Agent
+
+  DEFAULT_VPS_PING_TIMEOUT = 240
+
   def initialize(cm)
     super()
 
@@ -41,6 +45,7 @@ class VpsAgent < Agent
       :encoding => 'utf8'
     )
 
+    @vps_ping_timeout = DEFAULT_VPS_PING_TIMEOUT
     @cm = cm
     @default_ontology = 'cirrocumulus-vps'
     Log4r::Logger['agent'].info 'initialized VpsAgent'
@@ -107,6 +112,22 @@ class VpsAgent < Agent
           vps_id = query.second.second
           start_query_status_saga(vps_id, message.context)
         end
+    end
+  end
+  
+  def tick
+    super()
+
+    if @vps_ping_timeout == 0
+      @vps_ping_timeout = DEFAULT_VPS_PING_TIMEOUT
+
+      @saga_idx += 1
+      id = "ping-vpses-#{@saga_idx}"
+      saga = PingVpsesSaga.new(id, @cm, self)
+      @sagas << saga
+      saga.start()
+    else
+      @vps_ping_timeout -= 1
     end
   end
 
