@@ -127,7 +127,7 @@ class VpsStartSaga < Saga
   
   def find_next_node()
     node = nil
-    @nodes.sort_by {|n| n[:ram]}
+    @nodes.sort_by {|n| n[:ram]}.reverse
     @nodes.each {|n| node = n if n[:ram] >= @vps.current.ram && n[:attempt_failed] == false}
 
     node
