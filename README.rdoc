@@ -8,4 +8,4 @@ Cirrocumulus uses Bundler for each agent's dependencies.
 Among others, they depend on Sexpistol gem (for S-EXP parsing). This gem should be specially patched because of unconvenient handling of strings.
 
 == License
-Cirrocumulus is licensed under GNU GPL 2.0
+Cirrocumulus is licensed under GNU GPLv3
