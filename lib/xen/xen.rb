@@ -207,16 +207,16 @@ class XenAgent < Agent
               xml.write(domU.to_xml)
               xml.close
 
-              XenNode::start(xml_config)
+              if XenNode::start(xml_config) && XenNode::list_running_domUs().include?(domU_name)
+                XenNode::set_cpu(domU_name, domU_cpu_weight, domU_cpu_cap)
 
-              if !XenNode::list_running_domUs().include? domU_name
-                msg = Cirrocumulus::Message.new(nil, 'failure', Sexpistol.new.to_sexp([message.content, [:unknown_reason]]))
+                msg = Cirrocumulus::Message.new(nil, 'inform', Sexpistol.new.to_sexp([message.content, [:finished]]))
                 msg.ontology = @default_ontology
                 msg.receiver = message.sender
                 msg.in_reply_to = message.reply_with
                 @cm.send(msg)
               else
-                msg = Cirrocumulus::Message.new(nil, 'inform', Sexpistol.new.to_sexp([message.content, [:finished]]))
+                msg = Cirrocumulus::Message.new(nil, 'failure', Sexpistol.new.to_sexp([message.content, [:unknown_reason]]))
                 msg.ontology = @default_ontology
                 msg.receiver = message.sender
                 msg.in_reply_to = message.reply_with

@@ -33,7 +33,9 @@ class XenNode
   end
 
   def self.set_cpu(domU, weight, cap)
-    _, res = systemu "xm sched-credit -d #{domU} -w #{weight} -c #{cap}"
+    cmd = "xm sched-credit -d #{domU} -w #{weight} -c #{cap}"
+    puts cmd
+    _, res = systemu(cmd)
   end
 
   def self.get_memory(domU)
