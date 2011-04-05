@@ -3,15 +3,16 @@ class VpsStartSaga < Saga
 
   STATE_CHECKING_IF_ALREADY_RUNNING = 1
   STATE_SEARCHING_SUITABLE_NODE = 2
-  STATE_CHECKING_STORAGE = 3
-  STATE_ASSEMBLING_RAID = 4
-  STATE_STARTING_DOMU = 5
+  STATE_ASSEMBLING_RAID = 3
+  STATE_STARTING_DOMU = 4
 
   def start(vps_id, context)
     @context = context
     @vps_id = vps_id
     @nodes = []
     @selected_node = nil
+    @raid_devices = []
+    @current_raid_device = nil
     @vps = VpsConfiguration.find(@vps_id)
 
     handle(nil)
@@ -52,38 +53,30 @@ class VpsStartSaga < Saga
           store_node_info(message)
         end
 
-      when STATE_CHECKING_STORAGE
+      when STATE_ASSEMBLING_RAID
         if message.nil?
-          Log4r::Logger['agent'].error "no reply from node [#{id}]"
+          Log4r::Logger['agent'].error "no reply from node while assembling /dev/md#{@current_raid_device[:disk_number]} [#{id}]"
           error()
         else
           if message.sender == @selected_node[:name]
-            if message.content.first == :'=' && message.content[1].first == :state
-              raid_state = message.content[2]
-
-              if raid_state == [:active]
-                Log4r::Logger['agent'].debug "RAID is already active, w00h00! [#{id}]"
+            if message.act == 'inform' # add more checks!!!
+              @current_raid_device[:status] = :success
+              @current_raid_device = assemble_next_raid(@current_raid_device)
+              if @current_raid_device.nil?
+                Log4r::Logger['agent'].debug 'all RAID devices are assembled, starting domU [#{id}]"
                 change_state(STATE_STARTING_DOMU)
                 start_domu_on_selected_node()
-                set_timeout(DEFAULT_TIMEOUT*2)
-              else
-                Log4r::Logger['agent'].debug "assembling RAID devices [#{id}]"
-                start_raid()
-                change_state(STATE_ASSEMBLING_RAID)
-                set_timeout(DEFAULT_TIMEOUT)
+                set_timeout(LONG_TIMEOUT)
               end
+            elsif message.act == 'failure' || message.act == 'refuse'
+              Log4r::Logger['agent'].warn "failed to assemble /dev/md#{@current_raid_device[:disk_number]} [#{id}]"
+              @current_raid_device[:status] = :failed
             end
+
+
           end
         end
         
-      when STATE_ASSEMBLING_RAID
-        if message.nil?
-        else
-          change_state(STATE_STARTING_DOMU)
-          start_domu_on_selected_node()
-          set_timeout(DEFAULT_TIMEOUT*2)
-        end
-
       when STATE_STARTING_DOMU
         if message.nil?
           update_vps_state()
@@ -141,29 +134,34 @@ class VpsStartSaga < Saga
     
     if @selected_node
       Log4r::Logger['agent'].info "using #{@selected_node[:name]} to start VPS #{@vps.id} [#{id}]"
-      Log4r::Logger['agent'].debug "checking AoE & MD on selected node [#{id}]"
-      change_state(STATE_CHECKING_STORAGE)
-      check_storage()
-      set_timeout(DEFAULT_TIMEOUT)
+      Log4r::Logger['agent'].debug "assembling RAID devices [#{id}]"
+      @raid_devices = @vps.storage_disks.map {|d| {:disk_number => d.disk_number, :status => :idle}}
+      change_state(STATE_ASSEMBLING_RAID)
+      assemble_raids_on_node()
     else
       Log4r::Logger['agent'].warn "we're f#cked up: nowhere to run this VPS"
       notify_failure()
       error()
     end
   end
-
-  def check_storage()
-    msg = Cirrocumulus::Message.new(nil, 'query-ref', Sexpistol.new.to_sexp([:state, [:raid, @vps.storage_disks.first.disk_number]]))
-    msg.ontology = 'cirrocumulus-xen'
-    msg.receiver = @selected_node[:name]
-    msg.reply_with = "#{id}"
-    @cm.send(msg)
+  
+  def assemble_raids_on_node()
+    @current_raid_device = @raid_devices.first
+    @current_raid_device[:status] = :requested
+    start_raid(@selected_node[:name], @current_raid_device[:disk_number])
+    set_timeout(DEFAULT_TIMEOUT)
+  end
+  
+  def assemble_next_raid(current_raid)
+    device = @raid_devices.find {|d| d[:status] == :idle}
+    start_raid(@selected_node[:name], device)
+    set_timeout(DEFAULT_TIMEOUT)
   end
 
-  def start_raid()
-    msg = Cirrocumulus::Message.new(nil, 'request', Sexpistol.new.to_sexp([:start, [:raid, @vps.storage_disks.first.disk_number]]))
+  def start_raid(node, disk_number)
+    msg = Cirrocumulus::Message.new(nil, 'request', Sexpistol.new.to_sexp([:start, [:raid, disk_number]]))
     msg.ontology = 'cirrocumulus-xen'
-    msg.receiver = @selected_node[:name]
+    msg.receiver = node
     msg.reply_with = "#{id}"
     @cm.send(msg)
   end
