@@ -61,9 +61,10 @@ class VpsStartSaga < Saga
           if message.sender == @selected_node[:name]
             if message.act == 'inform' # add more checks!!!
               @current_raid_device[:status] = :success
+              Log4r::Logger['agent'].debug "[#{id}] RAID device /dev/md#{@current_raid_device[:disk_number]} was assembled successfully"
               @current_raid_device = assemble_next_raid(@current_raid_device)
               if @current_raid_device.nil?
-                Log4r::Logger['agent'].debug 'all RAID devices are assembled, starting domU [#{id}]"
+                Log4r::Logger['agent'].debug "[#{id}] all RAID devices are assembled, starting domU"
                 change_state(STATE_STARTING_DOMU)
                 start_domu_on_selected_node()
                 set_timeout(LONG_TIMEOUT)
@@ -72,8 +73,6 @@ class VpsStartSaga < Saga
               Log4r::Logger['agent'].warn "failed to assemble /dev/md#{@current_raid_device[:disk_number]} [#{id}]"
               @current_raid_device[:status] = :failed
             end
-
-
           end
         end
         
@@ -83,8 +82,14 @@ class VpsStartSaga < Saga
           notify_finished()
           finish()
         else
-          if message.sender == @selected_node[:name] && message.act == 'failure'
-            process_failure()
+          if message.sender == @selected_node[:name]
+            if message.act == 'failure' || message.act == 'refuse'
+              process_failure()
+            else # add extra check
+              update_vps_state()
+              notify_finished()
+              finish()
+            end
           end
         end
     end
@@ -105,7 +110,7 @@ class VpsStartSaga < Saga
   end
 
   def find_suitable_node()
-    Log4r::Logger['agent'].debug "querying available nodes [#{id}]"
+    Log4r::Logger['agent'].debug "[#{id}] querying available nodes"
     message = Cirrocumulus::Message.new(nil, 'query-ref', Sexpistol.new.to_sexp([:free_memory]))
     message.reply_with = @id
     message.ontology = 'cirrocumulus-xen'
@@ -114,32 +119,30 @@ class VpsStartSaga < Saga
 
   def store_node_info(message)
     node = {:name => message.sender, :ram => message.content[2].first, :attempt_failed => false}
-    Log4r::Logger['agent'].debug "found node #{node[:name]} with #{node[:ram]}Mb of free RAM"
+    Log4r::Logger['agent'].debug "[#{id}] found node #{node[:name]} with #{node[:ram]}Mb of free RAM"
     @nodes << node
+    @nodes = @nodes.sort_by {|n| n[:ram]}.reverse
   end
   
   def find_next_node()
-    node = nil
-    @nodes.sort_by {|n| n[:ram]}.reverse
-    @nodes.each {|n| node = n if n[:ram] >= @vps.current.ram && n[:attempt_failed] == false}
-
-    node
+    #puts @nodes.inspect
+    node = @nodes.find {|n| n[:ram] >= @vps.current.ram && n[:attempt_failed] == false}
   end
 
   def select_node()
     clear_timeout()
 
-    Log4r::Logger['agent'].debug "got information about #{@nodes.size} node(s) [#{id}]"
+    Log4r::Logger['agent'].debug "[#{id}] got information about #{@nodes.size} node(s)"
     @selected_node = find_next_node()
     
     if @selected_node
-      Log4r::Logger['agent'].info "using #{@selected_node[:name]} to start VPS #{@vps.id} [#{id}]"
-      Log4r::Logger['agent'].debug "assembling RAID devices [#{id}]"
+      Log4r::Logger['agent'].info "[#{id}] using #{@selected_node[:name]} to start VPS #{@vps.id}"
+      Log4r::Logger['agent'].debug "[#{id}] assembling RAID devices"
       @raid_devices = @vps.storage_disks.map {|d| {:disk_number => d.disk_number, :status => :idle}}
       change_state(STATE_ASSEMBLING_RAID)
       assemble_raids_on_node()
     else
-      Log4r::Logger['agent'].warn "we're f#cked up: nowhere to run this VPS"
+      Log4r::Logger['agent'].warn "[#{id}] we're f#cked up: nowhere to run this VPS"
       notify_failure()
       error()
     end
@@ -154,15 +157,20 @@ class VpsStartSaga < Saga
   
   def assemble_next_raid(current_raid)
     device = @raid_devices.find {|d| d[:status] == :idle}
-    start_raid(@selected_node[:name], device)
-    set_timeout(DEFAULT_TIMEOUT)
+    if device
+      start_raid(@selected_node[:name], device[:disk_number])
+      set_timeout(DEFAULT_TIMEOUT)
+      return device
+    end
+    
+    nil
   end
 
   def start_raid(node, disk_number)
     msg = Cirrocumulus::Message.new(nil, 'request', Sexpistol.new.to_sexp([:start, [:raid, disk_number]]))
     msg.ontology = 'cirrocumulus-xen'
     msg.receiver = node
-    msg.reply_with = "#{id}"
+    msg.reply_with = @id
     @cm.send(msg)
   end
 
@@ -201,7 +209,7 @@ class VpsStartSaga < Saga
   
   def process_failure()
     @selected_node[:attempt_failed] = true
-    Log4r::Logger['agent'].warn "failed to start VPS=#{@vps.id} on #{@selected_node[:name]}"
+    Log4r::Logger['agent'].warn "[#{id}] failed to start VPS=#{@vps.id} on #{@selected_node[:name]}"
     select_node()
   end
 
@@ -229,4 +237,3 @@ class VpsStartSaga < Saga
     state.save
   end
 end
-

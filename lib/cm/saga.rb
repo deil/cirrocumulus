@@ -31,12 +31,12 @@ class Saga
   end
 
   def set_timeout(secs)
-    Log4r::Logger['agent'].debug "waiting for #{secs} second(s) [#{id}]" if secs > 1
+    Log4r::Logger['agent'].debug "[#{id}] waiting for #{secs} second(s)" if secs > 1
     @timeout = secs*2
   end
   
   def change_state(new_state)
-    Log4r::Logger['agent'].debug "switching state from #{@state} to #{new_state} [#{id}]"
+    Log4r::Logger['agent'].debug "[#{id}] switching state from #{@state} to #{new_state}"
     @state = new_state
   end
   
@@ -44,7 +44,7 @@ class Saga
     clear_timeout()
     change_state(STATE_FINISHED)
     @finished = true
-    Log4r::Logger['agent'].info "finished [#{id}]"
+    Log4r::Logger['agent'].info "[#{id}] finished"
   end
   
   def error()

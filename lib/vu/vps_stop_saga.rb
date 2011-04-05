@@ -9,7 +9,7 @@ class VpsStopSaga < Saga
   def start(vps_id, context)
     @context = context
     @vps_id = vps_id
-    Log4r::Logger['agent'].info "attempting to stop VPS id=#{@vps_id}"
+    Log4r::Logger['agent'].info "[#{id}] stop (vps_id #{@vps_id})"
 
     @selected_node = nil
     @vps = VpsConfiguration.find(@vps_id)
@@ -34,18 +34,18 @@ class VpsStopSaga < Saga
         
       when STATE_WAITING_FOR_REPLY
         if message.nil?
-          Log4r::Logger['agent'].warn "#{@selected_node} didn't confirm domU stop, failure [#{id}]"
+          Log4r::Logger['agent'].warn "[#{id}] FAIL: #{@selected_node} hasn't confirmed domU stop"
           notify_failure(:node_not_responsing)
           error()
         else
-         if message.act == 'inform'
-           Log4r::Logger['agent'].info "VPS successfully stopped [#{id}]"
+         if message.act == 'inform' && message.sender == @selected_node
+           Log4r::Logger['agent'].info "[#{id}] SUCCESS: stop (vps_id #{@vps_id})"
            update_vps_state()
            stop_vps_raids()
            change_state(STATE_STOPPING_RAID)
            set_timeout(DEFAULT_TIMEOUT)
-         elsif message.act == 'failure'
-           Log4r::Logger['agent'].warn "failed to stop domU [#{id}]"
+         elsif message.act == 'failure' && message.sender == @selected_node
+           Log4r::Logger['agent'].warn "[#{id}] FAIL: failed to stop domU"
            notify_failure(:unknown_error)
            error()
          end
@@ -54,34 +54,34 @@ class VpsStopSaga < Saga
       when STATE_STOPPING_RAID
         if message.nil?
           if @queued_raids.all? {|r| r[:stopped]}
-            Log4r::Logger['agent'].info "all RAID disks are successfully stopped [#{id}]"
+            Log4r::Logger['agent'].info "[#{id}] all RAID devices are successfully stopped"
           else
-            Log4r::Logger['agent'].warn "#{@selected_node} didn't confirm RAID stop, but VPS successully stopped [#{id}]"
+            Log4r::Logger['agent'].warn "[#{id}] SUCCESS: stop (vps_id #{@vps_id}), but #{@selected_node} hasn't confirmed RAID devices stop"
           end
           
           notify_finished()
           finish()
         else
-          if message.act == 'inform'
+          if message.act == 'inform' && message.sender == @selected_node
             action = message.content.first
             status = message.content.second # :finished
             obj = action.second.first
             disk_number = action.second.second.to_i
             raid = @queued_raids.find {|r| r[:disk_number] == disk_number}
             raid[:stopped] = true
-            Log4r::Logger['agent'].debug "/dev/md#{raid[:disk_number]} stopped [#{id}]"
+            Log4r::Logger['agent'].debug "[#{id}] /dev/md#{raid[:disk_number]} stopped successfully"
             
             if @queued_raids.all? {|r| r[:stopped]}
               clear_timeout()
               set_timeout(1)
             end
-          elsif message.act == 'failure'
+          elsif message.act == 'failure' && message.sender == @selected_node
             action = message.content
             obj = action.second.first
             disk_number = action.second.second.to_i
             raid = @queued_raids.find {|r| r[:disk_number] == disk_number}
             raid[:stopped] = false
-            Log4r::Logger['agent'].warn "/dev/md#{raid[:disk_number]} failed to stop [#{id}]"
+            Log4r::Logger['agent'].warn "[#{id}] /dev/md#{raid[:disk_number]} failed to stop"
           end
         end
     end
