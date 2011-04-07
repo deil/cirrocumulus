@@ -1,1 +1,5 @@
 lib/cm/jabber_config.rb
+.idea
+.bundle
+*.pid
+cm.tar.gz
