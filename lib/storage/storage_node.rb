@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'systemu'
 require 'activesupport'
+require 'log4r'
 
 class StorageNode
   def self.free_space
@@ -18,12 +19,24 @@ class StorageNode
   end
 
   def self.create_volume(disk_number, size)
-    _, res, err = systemu "lvcreate -L#{size}g -n vd#{disk_number} mnekovg"
+    cmd = "lvcreate -L#{size}GiB -n vd#{disk_number} mnekovg"
+    Log4r::Logger['os'].debug("command: " + cmd)
+    _, res, err = systemu(cmd)
+    Log4r::Logger['os'].debug("output: " + res)
+    Log4r::Logger['os'].debug("stderr: " + err)
+    Log4r::Logger['os'].debug("done")
+
     err.blank?
   end
 
   def self.delete_volume(disk_number)
-    _, res, err = systemu "lvremove mnekovg/vd#{disk_number} --force"
+    cmd = "lvremove mnekovg/vd#{disk_number} --force"
+    Log4r::Logger['os'].debug("command: " + cmd)
+    _, res, err = systemu(cmd)
+    Log4r::Logger['os'].debug("output: " + res)
+    Log4r::Logger['os'].debug("stderr: " + err)
+    Log4r::Logger['os'].debug("done")
+
     err.blank?
   end
   

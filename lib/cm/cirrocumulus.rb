@@ -45,7 +45,9 @@ class Cirrocumulus
     msg += " act=\"#{message.act}\""
     msg += " reply-with=\"#{message.reply_with}\"" if message.reply_with
     msg += " in-reply-to=\"#{message.in_reply_to}\"" if message.in_reply_to
-    msg += "><content>#{message.content}</content></fipa-message>"
+    message_content = message.content if message.content.is_a? String
+    message_content = Sexpistol.new.to_sexp(message.content) if message.content.is_a? Array
+    msg += "><content>#{message_content}</content></fipa-message>"
     @im.send!("<message type=\"groupchat\" to=\"cirrocumulus@conference.o1host.net\" id=\"aaefa\"><body>#{msg.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;')}</body></message>")
   end
 
@@ -82,9 +84,9 @@ class Cirrocumulus
           xml = Hash.from_xml(message.body)['fipa_message']
  
           ontology = xml['ontology']
+          sender = message.from.resource
+          receiver = xml['receiver']
           if (agent.handles_ontology? ontology)
-            sender = message.from.resource
-            receiver = xml['receiver']
             if sniff || receiver.nil? || receiver == '' || receiver == @jid
               act = xml['act']
               content_raw = xml['content']
@@ -96,7 +98,7 @@ class Cirrocumulus
               msg.in_reply_to = xml['in_reply_to']
               agent.handle(msg, kb)
             end
-          else
+          elsif receiver == @jid
             Log4r::Logger['cirrocumulus'].warn "received message with unknown ontology=#{ontology}"
           end
         rescue Exception => e

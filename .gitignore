@@ -3,3 +3,4 @@ lib/cm/jabber_config.rb
 .bundle
 *.pid
 cm.tar.gz
+nbproject

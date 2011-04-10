@@ -9,6 +9,7 @@ require "#{AGENT_ROOT}/../cm/saga.rb"
 require "#{AGENT_ROOT}/../cm/agent.rb"
 require "#{AGENT_ROOT}/../cm/kb.rb"
 require "#{AGENT_ROOT}/../cm/cirrocumulus.rb"
+require "#{AGENT_ROOT}/create_vps_saga.rb"
 require "#{AGENT_ROOT}/vps_start_saga.rb"
 require "#{AGENT_ROOT}/vps_stop_saga.rb"
 require "#{AGENT_ROOT}/vps_restart_saga.rb"
@@ -104,6 +105,8 @@ class VpsAgent < Agent
           end
 
           start_disk_detach_saga(vps_id, disk_number, block_device, message.context)
+        elsif action == :create
+          handle_create_action(message)
         end
 
       when 'query-ref' then
@@ -118,7 +121,7 @@ class VpsAgent < Agent
   def tick
     super()
 
-    if @vps_ping_timeout == 0
+    if @vps_ping_timeout == 0.1
       @vps_ping_timeout = DEFAULT_VPS_PING_TIMEOUT
 
       @saga_idx += 1
@@ -132,7 +135,49 @@ class VpsAgent < Agent
   end
 
   private
-  
+
+  def handle_create_action(message)
+    obj = message.content.second
+    if obj.first == :vps # <fipa-message ontology="cirrocumulus-vps" act="request"><content>(create (vps (id 157) (name "testvps") (mem 256) (disk (disk_number 157) (size 5)) (distro 1)))</content></fipa-message>
+      params = obj
+      vps_id = vps_uid = vps_mem = disk_number = disk_size = distro = nil
+      params.each do |param|
+        next if !param.is_a? Array
+
+        if param.first == :id
+          vps_id = param.second.to_i
+        elsif param.first == :name
+          vps_uid = param.second
+        elsif param.first == :mem
+          vps_mem = param.second.to_i
+        elsif param.first == :disk
+          disk_params = param
+          disk_params.each do |disk_param|
+            next if !disk_param.is_a? Array
+
+            if disk_param.first == :disk_number
+              disk_number = disk_param.second.to_i
+            elsif disk_param.first == :size
+              disk_size = disk_param.second.to_i
+            end
+          end
+        elsif param.first == :distro
+          distro = param.second.to_i
+        end
+      end
+
+      start_create_vps_saga(vps_id, vps_uid, vps_mem, distro, disk_number, disk_size, message)
+    end
+  end
+
+  def start_create_vps_saga(vps_id, name, mem, distro, disk_number, disk_size, message)
+    @saga_idx += 1
+    id = "create-vps-#{@saga_idx}"
+    saga = CreateVpsSaga.new(id, @cm, self)
+    @sagas << saga
+    saga.start(vps_id, name, mem, distro, disk_number, disk_size, message.context)
+  end
+
   def start_disk_attach_saga(vps_id, disk_number, block_device, context)
     @saga_idx += 1
     id = "disk-attach-#{@saga_idx}"

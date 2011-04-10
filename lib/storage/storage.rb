@@ -12,6 +12,8 @@ require "#{AGENT_ROOT}/storage_node.rb"
 
 class StorageAgent < Agent
   def initialize(cm)
+    super()
+
     @cm = cm
     @default_ontology = 'cirrocumulus-storage'
   end
@@ -34,7 +36,7 @@ class StorageAgent < Agent
         @cm.send(msg)
 
       when 'request'
-        request(message.content)
+        handle_request(message)
     end
   end
 
@@ -61,8 +63,37 @@ class StorageAgent < Agent
     msg
   end
 
-  def request(obj)
-    
+  def handle_request(message)
+    action = message.content.first
+    if action == :create
+      obj = message.content.second
+      disk_number = disk_size = nil
+
+      if obj.first == :raid
+        obj.each do |param|
+          next if !param.is_a? Array
+          if param.first == :disk_number
+            disk_number = param.second.to_i
+          elsif param.first == :size
+            disk_size = param.second.to_i
+          end
+        end
+
+        if StorageNode::create_volume(disk_number, disk_size)
+          msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
+          msg.ontology = @default_ontology
+          msg.receiver = message.sender
+          msg.in_reply_to = message.reply_with
+          @cm.send(msg)
+        else
+          msg = Cirrocumulus::Message.new(nil, 'failure', [message.content, [:unknown_reason]])
+          msg.ontology = @default_ontology
+          msg.receiver = message.sender
+          msg.in_reply_to = message.reply_with
+          @cm.send(msg)
+        end
+      end
+    end
   end
   
 end
