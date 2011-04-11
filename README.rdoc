@@ -6,6 +6,3 @@ Cirrocumulus is an agent-based (cloud) infrastructure management system. Each ag
 
 Cirrocumulus uses Bundler for each agent's dependencies.
 Among others, they depend on Sexpistol gem (for S-EXP parsing). This gem should be specially patched because of unconvenient handling of strings.
-
-== License
-Cirrocumulus is licensed under GNU GPLv3
