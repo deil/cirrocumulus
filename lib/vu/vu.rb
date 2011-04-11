@@ -4,6 +4,7 @@ require 'rubygems'
 require 'active_support'
 require 'active_record'
 require 'systemu'
+require "#{AGENT_ROOT}/dbconfig.rb"
 require "#{AGENT_ROOT}/../cm/logger.rb"
 require "#{AGENT_ROOT}/../cm/saga.rb"
 require "#{AGENT_ROOT}/../cm/agent.rb"
@@ -39,10 +40,10 @@ class VpsAgent < Agent
 
     ActiveRecord::Base.establish_connection(
       :adapter => 'mysql',
-      :host => '172.16.11.5',
-      :username => 'o1host',
-      :password => 'o1h0st',
-      :database => 'o1_panel',
+      :host => DB_HOST,
+      :username => DB_USER,
+      :password => DB_PASSWORD,
+      :database => DB_DATABASE,
       :encoding => 'utf8'
     )
 

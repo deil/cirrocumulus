@@ -1,4 +1,5 @@
 lib/cm/jabber_config.rb
+lib/vu/dbconfig.rb
 .idea
 .bundle
 *.pid
