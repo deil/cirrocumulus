@@ -5,11 +5,29 @@ require 'log4r'
 
 class StorageNode
   def self.free_space
-    `pvs|grep mnekovg`.split("\n").first.split(" ")[5].to_f
+    _, out, err = systemu("zfs list tank/vps")
+    lines = out.split("\n")
+    useful_line = lines.second
+    free_space_str = useful_line.split(" ")[2]
+    free_space = free_space_str.to_f
+    if free_space_str =~ /T/
+      free_space = free_space * 1024
+    end
+    
+    free_space
   end
   
   def self.used_space
-    `pvs|grep mnekovg`.split("\n").first.split(" ")[4].to_f - free_space
+    _, out, err = systemu("zfs list tank/vps")
+    lines = out.split("\n")
+    useful_line = lines.second
+    used_space_str = useful_line.split(" ")[1]
+    used_space = free_space_str.to_f
+    if used_space_str =~ /T/
+      used_space = used_space * 1024
+    end
+    
+    used_space
   end
   
   def self.list_volumes()
