@@ -122,7 +122,7 @@ class VpsAgent < Agent
   def tick
     super()
 
-    if @vps_ping_timeout == 0.1
+    if @vps_ping_timeout == 0
       @vps_ping_timeout = DEFAULT_VPS_PING_TIMEOUT
 
       @saga_idx += 1
