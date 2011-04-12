@@ -25,9 +25,9 @@ class StorageNode
   end
   
   def self.list_volumes()
-    _, res = systemu 'lvs | grep mnekovg'
+    _, res = systemu 'zfs list | grep /tank/vps/xen'
     lines = res.split("\n")
-    lines.map {|line| line.split(' ').first}
+    lines.map {|line| line.split(' ').first.gsub('tank/vps/') }
   end
 
   def self.create_volume(disk_number, size)
