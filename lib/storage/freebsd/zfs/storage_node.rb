@@ -130,25 +130,20 @@ class StorageNode
   end
 
   def self.remove_export(disk_number)
-    name = "vd" + disk_number.to_s
-    
-    if is_exported?(name)
-      _, res = systemu 'cat /etc/ggaoed.conf'
-      lines = res.split("\n")
-      result = []
-      found = false
-      lines.each do |line|
-        found = false if line.strip =~ /\[\w+\]/ && found
-        found = true if line.strip == "[#{name}]"
-        result << line if !found
+    disk_name = "%03d" % disk_number
+    out = `ps aux | grep xen-#{disk_name}`
+    puts out
+    out.split("\n").each do |l|
+      if l =~ /vblade/
+        pid = l.split(" ").second
+        puts "pid: #{pid}"
+        `kill #{pid}`
+        
+        return true
       end
-
-      File.open("/etc/ggaoed.conf", "w") do |f|
-        f.write(result.join("\n"))
-      end
-
-      restart_ggaoed()
     end
+    
+    false
   end
 
   private
@@ -156,9 +151,5 @@ class StorageNode
   def self.grow_volume(volume, size)
     _, res, err = systemu "lvresize -L#{size}g mnekovg/#{volume}"
     err.blank?
-  end
-
-  def self.restart_ggaoed()
-    systemu 'ggaoectl reload'
   end
 end
