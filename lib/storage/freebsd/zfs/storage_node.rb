@@ -115,7 +115,7 @@ class StorageNode
     cmd = "/usr/local/sbin/vblade #{disk_number} #{slot} em1 /dev/zvol/#{VOL_NAME}/xen-#{disk_name}"
     
     if !is_exported?(disk_number)
-      cmd = "/usr/local/sbin/vblade #{disk_number} #{slot} em1 /dev/zvol/#{VOL_NAME}/xen-#{disk_name}"
+      cmd = "/usr/local/sbin/vblade #{disk_number} #{slot} em1 /dev/zvol/#{VOL_NAME}/xen-#{disk_name} &"
       Log4r::Logger['os'].debug("command: " + cmd)
       _, res, err = systemu(cmd)
       Log4r::Logger['os'].debug("output: " + res)
