@@ -15,7 +15,7 @@ backend_implementation = "storage_node"
 
 if PLATFORM =~ /linux/
   backend_implementation += "_linux"
-elsif PLATFORM =~ /freebds/
+elsif PLATFORM =~ /freebsd/
   backend_implementation = "_freebds"
 end
 
