@@ -15,6 +15,10 @@ class Cirrocumulus
       @content = content
     end
 
+    def failed?
+      act == 'failure' || act == 'refuse'
+    end
+
     def context
       Context.new(@sender, @reply_with)
     end

@@ -27,7 +27,7 @@ class MonitorAgent < Agent
     last_seen_at = kb.query_fact(key_str)
     last_seen = Time.now.to_i - last_seen_at.to_i
     if last_seen_at.nil? || last_seen > 3600
-      Log4r::Logger['agent'].info "agent #{message.sender} goes online"
+      #Log4r::Logger['agent'].info "agent #{message.sender} goes online"
     else
       kb.remove_fact(key_str)
     end
@@ -54,7 +54,7 @@ class MonitorAgent < Agent
       last_seen_at = @kb.query_fact(key)
       last_seen = Time.now.to_i - last_seen_at.to_i
       if last_seen > 3600
-        Log4r::Logger['agent'].warn "agent #{key} goes offline"
+        #Log4r::Logger['agent'].warn "agent #{key} goes offline"
       end
     end
   end
