@@ -16,7 +16,7 @@ backend_implementation = "storage_node"
 if PLATFORM =~ /linux/
   backend_implementation += "_linux"
 elsif PLATFORM =~ /freebsd/
-  backend_implementation = "_freebds"
+  backend_implementation += "_freebsd"
 end
 
 backend_implementation += "_#{STORAGE_BACKEND}.rb"
