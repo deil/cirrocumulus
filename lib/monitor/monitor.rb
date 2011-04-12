@@ -33,6 +33,18 @@ class MonitorAgent < Agent
     end
     
     kb.add_fact(key, Time.now.to_i.to_s)
+    
+    msg = message.sender
+    if message.receiver
+      msg += " => " + message.receiver
+    end
+    
+    if !message.in_reply_to.blank?
+      msg += " (#{message.in_reply_to})"
+    end
+    
+    msg += ": " + Sexpistol.new.to_sexp(message.content)
+    puts msg
   end
   
   def tick()
