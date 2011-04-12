@@ -107,7 +107,7 @@ class StorageNode
     Log4r::Logger['os'].debug("stderr: " + err)
     Log4r::Logger['os'].debug("done")
     
-    !res.blank?
+    (res.split("\n").size >= 3)
   end
 
   def self.add_export(disk_number, slot)
