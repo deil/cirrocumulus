@@ -7,7 +7,8 @@ Cirrocumulus is an agent-based (cloud) infrastructure management system. Each ag
 Cirrocumulus uses Bundler for each agent's dependencies.
 Among others, they depend on Sexpistol gem (for S-EXP parsing). This gem should be specially patched because of unconvenient handling of strings.
 
-== Message structure
+== Technical
+=== Message structure
 
 Each message is serialized in XML.
 It contains routing information, action type and content. Content always is an s-expression.
@@ -22,3 +23,4 @@ Message structure looks like:
     </content>
   </fipa-message>
 
+=== Action types
