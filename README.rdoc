@@ -24,3 +24,6 @@ Message structure looks like:
   </fipa-message>
 
 === Action types
+* request - asks receiver to perform some action, described in content
+* query-ref - query receiver for some information
+* query-if - asks receiver, if given proposition in content is true or false
