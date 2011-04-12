@@ -13,11 +13,12 @@ Each message is serialized in XML.
 It contains routing information, action type and content. Content always is an s-expression.
 
 Message structure looks like:
-<fipa-message
-  receiver="optional receiving agent identifier"
-  ontology="domain, e.g. cirrocumulus-vps, cirrocumulus-xen"
-  act="request|query-ref|query-if|inform|failure">
-  <content>
-    (s-expression)
-  </content>
-</fipa-message>
+  <fipa-message
+    receiver="optional receiving agent identifier"
+    ontology="domain, e.g. cirrocumulus-vps, cirrocumulus-xen"
+    act="request|query-ref|query-if|inform|failure">
+    <content>
+      (s-expression)
+    </content>
+  </fipa-message>
+
