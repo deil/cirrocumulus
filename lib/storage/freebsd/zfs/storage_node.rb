@@ -52,7 +52,8 @@ class StorageNode
   end
 
   def self.delete_volume(disk_number)
-    cmd = "lvremove mnekovg/vd#{disk_number} --force"
+    disk_name = "%03d" % disk_number
+    cmd = "zfs destroy #{VOL_NAME}/xen-#{disk_name}"
     Log4r::Logger['os'].debug("command: " + cmd)
     _, res, err = systemu(cmd)
     Log4r::Logger['os'].debug("output: " + res)
