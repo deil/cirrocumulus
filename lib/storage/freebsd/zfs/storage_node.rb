@@ -99,30 +99,33 @@ class StorageNode
   end
   
   def self.is_exported?(disk_number)
-    _, res = systemu "ggaoectl stats vd#{disk_number}"
+    disk_name = "%03d" % disk_number
+    cmd = "ps afx | grep xen-#{disk_name}"
+    Log4r::Logger['os'].debug("command: " + cmd)
+    _, res, err = systemu(cmd)
+    Log4r::Logger['os'].debug("output: " + res)
+    Log4r::Logger['os'].debug("stderr: " + err)
+    Log4r::Logger['os'].debug("done")
+    
     !res.blank?
   end
 
   def self.add_export(disk_number, slot)
-    name = "vd" + disk_number.to_s
+    disk_name = "%03d" % disk_number
+    cmd = "/usr/local/sbin/vblade #{disk_number} #{slot} em1 /dev/zvol/#{VOL_NAME}/xen-#{disk_name}"
     
-    if !is_exported?(name)
-      _, res = systemu 'cat /etc/ggaoed.conf'
-      lines = res.split("\n")
-      result = lines
+    if !is_exported?(disk_number)
+      cmd = "/usr/local/sbin/vblade #{disk_number} #{slot} em1 /dev/zvol/#{VOL_NAME}/xen-#{disk_name}"
+      Log4r::Logger['os'].debug("command: " + cmd)
+      _, res, err = systemu(cmd)
+      Log4r::Logger['os'].debug("output: " + res)
+      Log4r::Logger['os'].debug("stderr: " + err)
+      Log4r::Logger['os'].debug("done")
       
-      result << "[#{name}]"
-      result << "path = /dev/mnekovg/#{name}"
-      result << "shelf = " + disk_number.to_s
-      result << "slot = " + slot.to_s
-      result << ""
-
-      File.open("/etc/ggaoed.conf", "w") do |f|
-        f.write(result.join("\n"))
-      end
-
-      restart_ggaoed()
+      return err.blank?
     end
+    
+    false
   end
 
   def self.remove_export(disk_number)
