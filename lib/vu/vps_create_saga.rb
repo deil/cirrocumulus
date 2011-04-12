@@ -1,4 +1,4 @@
-class CreateVpsSaga < Saga
+class VpsCreateSaga < Saga
 
   STATE_SEARCHING_SUITABLE_NODE = 1
   STATE_CREATING_RAID = 2
@@ -29,7 +29,7 @@ class CreateVpsSaga < Saga
           if @selected_node
             Log4r::Logger['agent'].info "[#{id}] using node #{@selected_node[:name]}"
             Log4r::Logger['agent'].debug "[#{id}] creating RAID device /dev/md#{@vps[:disk].first[:disk_number]}"
-            create_raid(@vps[:disk].first[:disk_number], @vps[:disk].first[:size])
+            create_raid(@selected_node[:name], @vps[:disk].first[:disk_number], @vps[:disk].first[:size])
             change_state(STATE_CREATING_RAID)
             set_timeout(LONG_TIMEOUT)
           else
@@ -48,6 +48,7 @@ class CreateVpsSaga < Saga
             Log4r::Logger['agent'].warn "[#{id}] FATAL: failed to create RAID array"
             notify_failure()
             error()
+          elsif message.act == 'inform'
           end
         end
     end
@@ -75,10 +76,11 @@ class CreateVpsSaga < Saga
     @nodes.find {|node| node[:ram] > @vps[:ram] && node[:attempt_failed] == false}
   end
 
-  def create_raid(disk_number, size)
+  def create_raid(node, disk_number, size)
     msg = Cirrocumulus::Message.new(nil, 'request', [:create, [:raid, [:disk_number, disk_number], [:size, size]]])
     msg.ontology = 'cirrocumulus-xen'
     msg.reply_with = id
+    msg.receiver = node
     @cm.send(msg)
   end
 

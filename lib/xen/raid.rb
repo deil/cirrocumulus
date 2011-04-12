@@ -32,12 +32,29 @@ class Raid
   end
   
   def self.assemble_raid(disk_id, exports)
-    devices = exports.map {|e| "/dev/etherd/" + e}
+    devices = exports_to_aoe_devices(exports)
     cmd = "mdadm --assemble /dev/md#{disk_id} " + devices.join(' ') + " --run"
     puts cmd
     _, out, err = systemu(cmd)
     puts out
     puts err
     err.blank? || err.include?("has been started")
+  end
+
+  def self.create_raid(disk_number, exports)
+    devices = exports_to_aoe_devices(exports)
+    cmd = "mdadm --create /dev/md#{disk_number} --level=1 --raid-devices=2 -binternal --bitmap-chunk=1024 --metadata=1.2 " + devices.join(' ')
+    Log4r::Logger['os'].info(cmd)
+    _, out, err = systemu(cmd)
+    Log4r::Logger['os'].debug("stdout: " + out)
+    Log4r::Logger['os'].debug("stderr: " + err)
+
+    err =~ /array \/dev\/md#{disk_number} started/
+  end
+
+  private
+
+  def self.exports_to_aoe_devices(exports)
+    exports.map {|e| '/dev/etherd/' + e}
   end
 end
