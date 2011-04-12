@@ -97,6 +97,30 @@ class StorageAgent < Agent
           msg.in_reply_to = message.reply_with
           @cm.send(msg)
         end
+      elsif obj.first == :export
+        disk_slot = disk_number = nil
+        obj.each do |param|
+          next if !param.is_a? Array
+          if param.first == :disk_number
+            disk_number = param.second.to_i
+          elsif param.first == :slot
+            disk_slot = param.second.to_i
+          end
+        end
+        
+        if StorageNode::add_export(disk_number, disk_slot)
+          msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
+          msg.ontology = @default_ontology
+          msg.receiver = message.sender
+          msg.in_reply_to = message.reply_with
+          @cm.send(msg)
+        else
+          msg = Cirrocumulus::Message.new(nil, 'failure', [message.content, [:unknown_reason]])
+          msg.ontology = @default_ontology
+          msg.receiver = message.sender
+          msg.in_reply_to = message.reply_with
+          @cm.send(msg)
+        end
       end
     end
   end
