@@ -48,27 +48,27 @@ class Cirrocumulus
     message_content = message.content if message.content.is_a? String
     message_content = Sexpistol.new.to_sexp(message.content) if message.content.is_a? Array
     msg += "><content>#{message_content}</content></fipa-message>"
-    @im.send!("<message type=\"groupchat\" to=\"cirrocumulus@conference.o1host.net\" id=\"aaefa\"><body>#{msg.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;')}</body></message>")
+    @im.send!("<message type=\"groupchat\" to=\"#{JABBER_CONFERENCE}\" id=\"aaefa\"><body>#{msg.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;')}</body></message>")
   end
 
   def inform(receiver, answer, ontology = nil)
     msg = "<fipa-message ontology=\"#{ontology || @ontology}\" receiver=\"#{receiver}\" act=\"inform\"><content>#{answer}</content></fipa-message>"
-    @im.send!("<message type=\"groupchat\" to=\"cirrocumulus@conference.o1host.net\" id=\"aaefa\"><body>#{msg.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;')}</body></message>")
+    @im.send!("<message type=\"groupchat\" to=\"#{JABBER_CONFERENCE}\" id=\"aaefa\"><body>#{msg.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;')}</body></message>")
   end
 
   def refuse(receiver, action, reason, ontology = nil)
     msg = "<fipa-message ontology=\"#{ontology || @ontology}\" receiver=\"#{receiver}\" act=\"refuse\"><content>(#{action} #{reason})</content></fipa-message>"
-    @im.send!("<message type=\"groupchat\" to=\"cirrocumulus@conference.o1host.net\" id=\"aaefa\"><body>#{msg.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;')}</body></message>")
+    @im.send!("<message type=\"groupchat\" to=\"#{JABBER_CONFERENCE}\" id=\"aaefa\"><body>#{msg.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;')}</body></message>")
   end
 
   def failure(receiver, action, ontology = nil)
     msg = "<fipa-message ontology=\"#{ontology || @ontology}\" receiver=\"#{receiver}\" act=\"failure\"><content>#{action}</content></fipa-message>"
-    @im.send!("<message type=\"groupchat\" to=\"cirrocumulus@conference.o1host.net\" id=\"aaefa\"><body>#{msg.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;')}</body></message>")
+    @im.send!("<message type=\"groupchat\" to=\"#{JABBER_CONFERENCE}\" id=\"aaefa\"><body>#{msg.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;')}</body></message>")
   end
 
   def request(receiver, action, ontology = nil)
     msg = "<fipa-message ontology=\"#{ontology || @ontology}\" receiver=\"#{receiver}\" act=\"request\"><content>#{action}</content></fipa-message>"
-    @im.send!("<message type=\"groupchat\" to=\"cirrocumulus@conference.o1host.net\" id=\"aaefa\"><body>#{msg.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;')}</body></message>")
+    @im.send!("<message type=\"groupchat\" to=\"#{JABBER_CONFERENCE}\" id=\"aaefa\"><body>#{msg.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;')}</body></message>")
   end
 
   def run(agent, kb, sniff = false)
@@ -102,8 +102,8 @@ class Cirrocumulus
             Log4r::Logger['cirrocumulus'].warn "received message with unknown ontology=#{ontology}"
           end
         rescue Exception => e
-          puts e.to_s
-          puts e.backtrace
+          #puts e.to_s
+          #puts e.backtrace
         end
       end
 

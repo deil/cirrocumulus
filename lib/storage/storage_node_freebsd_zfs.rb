@@ -17,7 +17,7 @@ class StorageNode
   def self.used_space
     used_space_str = `zfs list tank/vps`.split("\n").last.split(" ")[1]
     used_space = used_space_str.to_f
-    if free_space_str =~ /T/
+    if used_space_str =~ /T/
       used_space = used_space * 1024
     end
     
