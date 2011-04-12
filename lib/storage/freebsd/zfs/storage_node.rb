@@ -100,11 +100,11 @@ class StorageNode
   
   def self.is_exported?(disk_number)
     disk_name = "%03d" % disk_number
-    cmd = "ps aux | grep xen-#{disk_name}"
-    Log4r::Logger['os'].debug("command: " + cmd)
-    _, res, err = systemu(cmd)
+    res = `ps aux | grep xen-#{disk_name}`
+    #Log4r::Logger['os'].debug("command: " + cmd)
+    #_, res, err = systemu(cmd)
     Log4r::Logger['os'].debug("output: " + res)
-    Log4r::Logger['os'].debug("stderr: " + err)
+    #Log4r::Logger['os'].debug("stderr: " + err)
     Log4r::Logger['os'].debug("done")
     
     res.split("\n").any? {|l| l =~ /vblade/ }
