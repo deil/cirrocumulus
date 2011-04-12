@@ -5,7 +5,12 @@ require 'log4r'
 
 class StorageNode
   def self.free_space
-    _, out, err = systemu("zfs list tank/vps")
+    cmd = systemu("zfs list tank/vps")
+    puts cmd
+    _, out, err = systemu(cmd)
+    puts out
+    puts "--"
+
     lines = out.split("\n")
     useful_line = lines.second
     free_space_str = useful_line.split(" ")[2]
@@ -18,11 +23,12 @@ class StorageNode
   end
   
   def self.used_space
-    _, out, err = systemu("zfs list tank/vps")
+    cmd = "zfs list tank/vps"
+    
     lines = out.split("\n")
     useful_line = lines.second
     used_space_str = useful_line.split(" ")[1]
-    used_space = free_space_str.to_f
+    used_space = used_space_str.to_f
     if used_space_str =~ /T/
       used_space = used_space * 1024
     end
