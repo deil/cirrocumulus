@@ -46,7 +46,7 @@ class VpsCreateSaga < Saga
         elsif message.sender == @selected_node[:name]
           if message.act == 'failure' || message.act == 'refuse'
             Log4r::Logger['agent'].warn "[#{id}] FATAL: failed to create RAID array"
-            notify_failure()
+            notify_failure(:disk_create_failure)
             error()
           elsif message.act == 'inform'
           end
@@ -84,8 +84,8 @@ class VpsCreateSaga < Saga
     @cm.send(msg)
   end
 
-  def notify_failure()
-    msg = Cirrocumulus::Message.new(nil, 'failure', [[:create, [:vps, [:id, @vps[:id]]]], [:unknown_reason]])
+  def notify_failure(reason = :unknown_reason)
+    msg = Cirrocumulus::Message.new(nil, 'failure', [[:create, [:vps, [:id, @vps[:id]]]], [reason]])
     msg.ontology = 'cirrocumulus-vps'
     msg.in_reply_to = @context.reply_with
     msg.receiver = @context.sender

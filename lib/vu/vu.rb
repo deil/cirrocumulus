@@ -10,7 +10,7 @@ require "#{AGENT_ROOT}/../cm/saga.rb"
 require "#{AGENT_ROOT}/../cm/agent.rb"
 require "#{AGENT_ROOT}/../cm/kb.rb"
 require "#{AGENT_ROOT}/../cm/cirrocumulus.rb"
-require "#{AGENT_ROOT}/create_vps_saga.rb"
+require "#{AGENT_ROOT}/vps_create_saga.rb"
 require "#{AGENT_ROOT}/vps_start_saga.rb"
 require "#{AGENT_ROOT}/vps_stop_saga.rb"
 require "#{AGENT_ROOT}/vps_restart_saga.rb"
@@ -122,7 +122,7 @@ class VpsAgent < Agent
   def tick
     super()
 
-    if @vps_ping_timeout == 0
+    if @vps_ping_timeout == 0.1
       @vps_ping_timeout = DEFAULT_VPS_PING_TIMEOUT
 
       @saga_idx += 1
@@ -173,8 +173,8 @@ class VpsAgent < Agent
 
   def start_create_vps_saga(vps_id, name, mem, distro, disk_number, disk_size, message)
     @saga_idx += 1
-    id = "create-vps-#{@saga_idx}"
-    saga = CreateVpsSaga.new(id, @cm, self)
+    id = "vps-create-#{@saga_idx}"
+    saga = VpsCreateSaga.new(id, @cm, self)
     @sagas << saga
     saga.start(vps_id, name, mem, distro, disk_number, disk_size, message.context)
   end
