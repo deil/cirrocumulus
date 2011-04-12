@@ -9,7 +9,7 @@ class StorageNode
 
   def self.free_space
     free_space_str = `zfs list #{VOL_NAME}`.split("\n").last.split(" ")[2]
-    free_space = free_space_str.to_f
+    free_space = free_space_str.gsub(',', '.').to_f
     if free_space_str =~ /T/
       free_space = free_space * 1024
     end
@@ -19,7 +19,7 @@ class StorageNode
   
   def self.used_space
     used_space_str = `zfs list #{VOL_NAME}`.split("\n").last.split(" ")[1]
-    used_space = used_space_str.to_f
+    used_space = used_space_str.gsub(',', '.').to_f
     if used_space_str =~ /T/
       used_space = used_space * 1024
     end

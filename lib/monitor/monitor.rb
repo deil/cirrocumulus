@@ -43,7 +43,7 @@ class MonitorAgent < Agent
       msg += " (#{message.in_reply_to})"
     end
     
-    msg += ": " + Sexpistol.new.to_sexp(message.content)
+    msg += ": " + message.act + " " + Sexpistol.new.to_sexp(message.content)
     puts msg
   end
   
