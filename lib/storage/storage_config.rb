@@ -1,0 +1,2 @@
+STORAGE_BACKEND = :lvm
+#STORAGE_BACKEND = :zfs
