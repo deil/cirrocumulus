@@ -8,7 +8,12 @@ require "#{AGENT_ROOT}/../cm/logger.rb"
 require "#{AGENT_ROOT}/../cm/agent.rb"
 require "#{AGENT_ROOT}/../cm/kb.rb"
 require "#{AGENT_ROOT}/../cm/cirrocumulus.rb"
+
+if PLATFORM =~ /linux/
 require "#{AGENT_ROOT}/storage_node.rb"
+elsif PLATFORM =~ /freebds/
+require "#{AGENT_ROOT}/storage_node_freebsd.rb"
+end
 
 class StorageAgent < Agent
   def initialize(cm)
@@ -101,5 +106,6 @@ end
 # <fipa-message act="query-if" ontology="/cirrocumulus-xen"><content>(running (domu "03731b0100d9680173f75076e603d15d"))</content></fipa-message>
 # <fipa-message act="request" ontology="/cirrocumulus-xen"><content>start (domu (id 153) (name "03731b0100d9680173f75076e603d15d") (mem 256) (vcpus 1) (disks (xvda 153)) (cpu_weight 256) (cpu_cap 0))</content></fipa-message>
 
+Log4r::Logger['agent'].info "current platform = #{PLATFORM}"
 cm = Cirrocumulus.new('storage')
 cm.run(StorageAgent.new(cm), Kb.new)
