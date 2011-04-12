@@ -33,14 +33,26 @@ class Cirrocumulus
       @reply_with = reply_with
     end
   end
- 
+
+  def self.platform
+    if PLATFORM =~ /freebsd/
+      return 'freebsd'
+    elsif PLATFORM =~ /linux/
+      return 'linux'
+    end
+
+    return 'unknown'
+  end
+
   def initialize(suffix, generate_jid = true)
+    Log4r::Logger['cirrocumulus'].info 'platform: ' + Cirrocumulus::platform
     _, hostname = systemu 'hostname'
     hostname.strip!
     @jid = generate_jid ? "#{hostname}-#{suffix}" : suffix
-    @im = Jabber::Simple.new("#{@jid}@#{JABBER_SERVER}", JABBER_DEFAULT_PASSWORD)
-    @im.send!("<presence to='#{JABBER_CONFERENCE}/#{@jid}' />")
     Log4r::Logger['cirrocumulus'].info "logging as " + @jid
+    @im = Jabber::Simple.new("#{@jid}@#{JABBER_SERVER}", JABBER_DEFAULT_PASSWORD)
+    Log4r::Logger['cirrocumulus'].info 'joining ' + JABBER_CONFERENCE
+    @im.send!("<presence to='#{JABBER_CONFERENCE}/#{@jid}' />")
   end
   
   def send(message)
