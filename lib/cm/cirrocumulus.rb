@@ -102,8 +102,8 @@ class Cirrocumulus
             Log4r::Logger['cirrocumulus'].warn "received message with unknown ontology=#{ontology}"
           end
         rescue Exception => e
-          puts e.to_s
-          puts e.backtrace
+          #puts e.to_s
+          #puts e.backtrace
         end
       end
 
