@@ -107,7 +107,7 @@ class StorageNode
     Log4r::Logger['os'].debug("stderr: " + err)
     Log4r::Logger['os'].debug("done")
     
-    (res.split("\n").size >= 3)
+    res =~ /vblade/
   end
 
   def self.add_export(disk_number, slot)
