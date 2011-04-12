@@ -75,7 +75,28 @@ class StorageAgent < Agent
     if action == :delete
       obj = message.content.second
 
-      if obj.first == :volume
+      if obj.first == :export
+        obj.each do |param|
+          next if !param.is_a? Array
+          if param.first == :disk_number
+            disk_number = param.second.to_i
+          end
+        end
+        
+        if StorageNode::remove_export(disk_number)
+          msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
+          msg.ontology = @default_ontology
+          msg.receiver = message.sender
+          msg.in_reply_to = message.reply_with
+          @cm.send(msg)
+        else
+          msg = Cirrocumulus::Message.new(nil, 'failure', [message.content, [:unknown_reason]])
+          msg.ontology = @default_ontology
+          msg.receiver = message.sender
+          msg.in_reply_to = message.reply_with
+          @cm.send(msg)
+        end
+      elsif obj.first == :volume
         obj.each do |param|
           next if !param.is_a? Array
           if param.first == :disk_number

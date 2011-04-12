@@ -100,7 +100,10 @@ class StorageNode
       end
 
       restart_ggaoed()
+      return true
     end
+    
+    false
   end
 
   def self.remove_export(disk_number)
@@ -122,7 +125,10 @@ class StorageNode
       end
 
       restart_ggaoed()
+      return true
     end
+    
+    false
   end
 
   private
