@@ -11,16 +11,9 @@ require "#{AGENT_ROOT}/../cm/cirrocumulus.rb"
 
 # load corresponding backend
 require "#{AGENT_ROOT}/storage_config.rb"
-backend_implementation = "storage_node"
-
-if PLATFORM =~ /linux/
-  backend_implementation += "_linux"
-elsif PLATFORM =~ /freebsd/
-  backend_implementation += "_freebsd"
-end
-
-backend_implementation += "_#{STORAGE_BACKEND}.rb"
-require "#{AGENT_ROOT}/" + backend_implementation
+backend_platform = 'linux'
+backend_platform = 'freebsd' if PLATFORM =~ /freebsd/
+require "#{AGENT_ROOT}/#{backend_platform}/#{STORAGE_BACKEND}/storage_node.rb"
 
 class StorageAgent < Agent
   def initialize(cm)

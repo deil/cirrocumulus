@@ -4,8 +4,11 @@ require 'activesupport'
 require 'log4r'
 
 class StorageNode
+
+  VOL_NAME = "tank/vps"
+
   def self.free_space
-    free_space_str = `zfs list tank/vps`.split("\n").last.split(" ")[2]
+    free_space_str = `zfs list #{VOL_NAME}`.split("\n").last.split(" ")[2]
     free_space = free_space_str.to_f
     if free_space_str =~ /T/
       free_space = free_space * 1024
@@ -15,7 +18,7 @@ class StorageNode
   end
   
   def self.used_space
-    used_space_str = `zfs list tank/vps`.split("\n").last.split(" ")[1]
+    used_space_str = `zfs list #{VOL_NAME}`.split("\n").last.split(" ")[1]
     used_space = used_space_str.to_f
     if used_space_str =~ /T/
       used_space = used_space * 1024
@@ -25,13 +28,20 @@ class StorageNode
   end
   
   def self.list_volumes()
-    _, res = systemu 'zfs list | grep /tank/vps/xen'
+    cmd = "zfs list | grep /#{VOL_NAME}/xen"
+    Log4r::Logger['os'].debug("command: " + cmd)
+    _, res, err = systemu(cmd)
+    Log4r::Logger['os'].debug("output: " + res)
+    Log4r::Logger['os'].debug("stderr: " + err)
+    Log4r::Logger['os'].debug("done")
+
     lines = res.split("\n")
-    lines.map {|line| line.split(' ').first.gsub('tank/vps/') }
+    lines.map {|line| line.split(' ').first.gsub("#{VOL_NAME}/") }
   end
 
   def self.create_volume(disk_number, size)
-    cmd = "lvcreate -L#{size}GiB -n vd#{disk_number} mnekovg"
+    disk_name = "%03d" % disk_number
+    cmd = "zfs create -V #{size}G #{VOL_NAME}/xen-#{disk_name}"
     Log4r::Logger['os'].debug("command: " + cmd)
     _, res, err = systemu(cmd)
     Log4r::Logger['os'].debug("output: " + res)
