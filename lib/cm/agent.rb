@@ -93,6 +93,8 @@ class Agent
               cm.send(msg)
             end
           end
+
+          process_agent(message)
         elsif message.act == 'query-ref'
           p message.content
           if message.content.first == :default_ontology
@@ -103,26 +105,32 @@ class Agent
           end
         end
       else
-        agent_id = message.sender
-        return if agent_id == @agent.identifier
+        process_agent(message)
+      end
+    end
 
-        agent = @agents.find {|a| a.identifier == agent_id}
-        if agent
-          agent.last_seen_at = Time.now.to_i
-          @version = Time.now.to_i
-        else
-          agent = AgentInfo.new
-          agent.identifier = agent_id
-          agent.last_seen_at = Time.now.to_i
-          Log4r::Logger['agent'].info "discovered neighbour: #{agent.identifier}"
-          @agents << agent
-          @version = Time.now.to_i
+    private
 
-          msg = Cirrocumulus::Message.new(nil, 'query-ref', [:default_ontology])
-          msg.receiver = agent.identifier
-          msg.ontology = 'cirrocumulus-map'
-          cm.send(msg)
-        end
+    def process_agent(message)
+      agent_id = message.sender
+      return if agent_id == @agent.identifier
+
+      agent = @agents.find {|a| a.identifier == agent_id}
+      if agent
+        agent.last_seen_at = Time.now.to_i
+        @version = Time.now.to_i
+      else
+        agent = AgentInfo.new
+        agent.identifier = agent_id
+        agent.last_seen_at = Time.now.to_i
+        Log4r::Logger['agent'].info "discovered neighbour: #{agent.identifier}"
+        @agents << agent
+        @version = Time.now.to_i
+
+        msg = Cirrocumulus::Message.new(nil, 'query-ref', [:default_ontology])
+        msg.receiver = agent.identifier
+        msg.ontology = 'cirrocumulus-map'
+        cm.send(msg)
       end
     end
   end
