@@ -113,7 +113,7 @@ class RaidCreateSaga < Saga
 
   def add_export(disk_number, storage)
     storage =~ /c001s(\d)/
-    slot = $1.to_i
+    slot = $1.to_i + 1
     Log4r::Logger['agent'].debug "[#{id}] adding export on #{storage} as e#{disk_number}.#{slot}"
     msg = Cirrocumulus::Message.new(nil, 'request', [:create, [:export, [:disk_number, disk_number], [:slot, slot]]])
     msg.ontology = 'cirrocumulus-storage'
