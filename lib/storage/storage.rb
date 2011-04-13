@@ -59,8 +59,39 @@ class StorageAgent < Agent
   def query_if(obj)
     msg = Cirrocumulus::Message.new(nil, 'inform', nil)
     if obj.first == :exported
-      disk_number = obj.second.to_i
+      disk_number = nil
+      
+      obj.each do |param|
+        next if !param.is_a?(Array)
+        if param.first == :disk_number
+          disk_number = param.second.to_i
+        end
+      end
+
       msg.content = StorageNode.is_exported?(disk_number) ? Sexpistol.new.to_sexp(obj) : Sexpistol.new.to_sexp([:not, obj])
+    elsif obj.first == :exists
+      obj.each do |param|
+        next if !param.is_a?(Array)
+        if param.first == :volume
+          disk_number = nil
+          
+          volume = param
+          volume.each do |vparam|
+            next if !vparam.is_a?(Array)
+            if vparam.first == :disk_number
+              disk_number = vparam.second.to_i
+            end
+          end
+          
+          all_volumes = StorageNode::list_volumes()
+          volume_name = "vd" + disk_number.to_s
+          if all_volumes.include?(volume_name)
+            msg.content = obj
+          else
+            msg.content = [:not, obj]
+          end
+        end
+      end
     end
 
     msg
