@@ -109,6 +109,7 @@ class Agent
         agent = @agents.find {|a| a.identifier == agent_id}
         if agent
           agent.last_seen_at = Time.now.to_i
+          @version = Time.now.to_i
         else
           agent = AgentInfo.new
           agent.identifier = agent_id
