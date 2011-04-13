@@ -30,8 +30,7 @@ end
 
 class XenAgent < Agent
   def initialize(cm)
-    super()
-    @cm = cm
+    super(cm)
     @default_ontology = 'cirrocumulus-xen'
     XenNode::set_cpu(0, 10000, 0)
     systemu 'aoe-discover'

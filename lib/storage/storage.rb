@@ -15,9 +15,7 @@ require "#{AGENT_ROOT}/#{Cirrocumulus::platform}/#{STORAGE_BACKEND}/storage_node
 
 class StorageAgent < Agent
   def initialize(cm)
-    super()
-
-    @cm = cm
+    super(cm)
     @default_ontology = 'cirrocumulus-storage'
   end
 

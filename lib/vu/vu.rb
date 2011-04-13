@@ -36,7 +36,7 @@ class VpsAgent < Agent
   DEFAULT_VPS_PING_TIMEOUT = 240
 
   def initialize(cm)
-    super()
+    super(cm)
 
     ActiveRecord::Base.establish_connection(
       :adapter => 'mysql',
@@ -48,7 +48,6 @@ class VpsAgent < Agent
     )
 
     @vps_ping_timeout = DEFAULT_VPS_PING_TIMEOUT
-    @cm = cm
     @default_ontology = 'cirrocumulus-vps'
     Log4r::Logger['agent'].info 'initialized VpsAgent'
   end

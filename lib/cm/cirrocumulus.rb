@@ -44,6 +44,8 @@ class Cirrocumulus
     return 'unknown'
   end
 
+  attr_reader :jid
+
   def initialize(suffix, generate_jid = true)
     Log4r::Logger['cirrocumulus'].info 'platform: ' + Cirrocumulus::platform
     _, hostname = systemu 'hostname'
@@ -111,8 +113,9 @@ class Cirrocumulus
               msg.receiver = receiver
               msg.reply_with = xml['reply_with']
               msg.in_reply_to = xml['in_reply_to']
+              msg.ontology = ontology
               flatten_message_content(msg)
-              agent.handle(msg, kb)
+              agent.handle_message(msg, kb)
             end
           elsif receiver == @jid
             Log4r::Logger['cirrocumulus'].warn "received message with unknown ontology=#{ontology}"

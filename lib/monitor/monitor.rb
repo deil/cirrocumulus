@@ -10,10 +10,7 @@ require "#{AGENT_ROOT}/../cm/kb.rb"
 require "#{AGENT_ROOT}/../cm/cirrocumulus.rb"
 
 class MonitorAgent < Agent
-  def initialize(cm)
-    @cm = cm
-  end
-  
+
   def handles_ontology?(ontology)
     true
   end
@@ -48,6 +45,8 @@ class MonitorAgent < Agent
   end
   
   def tick()
+    super()
+
     return unless @kb
     
     @kb.keys.each do |key|
