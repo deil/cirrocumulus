@@ -88,6 +88,21 @@ class StorageAgent < Agent
           else
             msg.content = [:not, obj]
           end
+        elsif param.first == :export
+          disk_number = nil
+          export = param
+          export.each do |eparam|
+            next if !eparam.is_a?(Array)
+            if eparam.first == :disk_number
+              disk_number = eparam.second.to_i
+            end
+          end
+          
+          if StorageNode::is_exported?(disk_number)
+            msg.content = obj
+          else
+            msg.content = [:not, obj]
+          end
         end
       end
     end
