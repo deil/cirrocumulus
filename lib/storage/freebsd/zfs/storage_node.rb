@@ -39,6 +39,12 @@ class StorageNode
     lines.map {|line| line.split(' ').first.gsub("#{VOL_NAME}/") }
   end
 
+  def self.volume_exists?(disk_number)
+    all = list_volumes()
+    name = "vd" + disk_number.to_s
+    all.include?(name)
+  end
+
   def self.create_volume(disk_number, size)
     disk_name = "%03d" % disk_number
     cmd = "zfs create -V #{size}G #{VOL_NAME}/xen-#{disk_name}"

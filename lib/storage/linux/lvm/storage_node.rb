@@ -17,6 +17,12 @@ class StorageNode
     lines = res.split("\n")
     lines.map {|line| line.split(' ').first}
   end
+  
+  def self.volume_exists?(disk_number)
+    all = list_volumes()
+    name = "vd" + disk_number.to_s
+    all.include?(name)
+  end
 
   def self.create_volume(disk_number, size)
     cmd = "lvcreate -L#{size}GiB -n vd#{disk_number} mnekovg"

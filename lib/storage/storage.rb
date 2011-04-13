@@ -83,9 +83,7 @@ class StorageAgent < Agent
             end
           end
           
-          all_volumes = StorageNode::list_volumes()
-          volume_name = "vd" + disk_number.to_s
-          if all_volumes.include?(volume_name)
+          if StorageNode::volume_exists?(disk_number)
             msg.content = obj
           else
             msg.content = [:not, obj]
@@ -132,7 +130,15 @@ class StorageAgent < Agent
             disk_number = param.second.to_i
           end
         end
-
+        
+        if !StorageNode::volume_exists?(disk_number)
+          msg = Cirrocumulus::Message.new(nil, 'refuse', [message.content, [:not_exists]])
+          msg.ontology = @default_ontology
+          msg.receiver = message.sender
+          msg.in_reply_to = message.reply_with
+          @cm.send(msg) and return
+        end
+        
         if StorageNode::delete_volume(disk_number)
           msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
           msg.ontology = @default_ontology
@@ -159,6 +165,14 @@ class StorageAgent < Agent
           elsif param.first == :size
             disk_size = param.second.to_i
           end
+        end
+
+        if StorageNode::volume_exists?(disk_number)
+          msg = Cirrocumulus::Message.new(nil, 'refuse', [message.content, [:already_exists]])
+          msg.ontology = @default_ontology
+          msg.receiver = message.sender
+          msg.in_reply_to = message.reply_with
+          @cm.send(msg) and return
         end
 
         if StorageNode::create_volume(disk_number, disk_size)
