@@ -107,11 +107,11 @@ class Cirrocumulus
               act = xml['act']
               content_raw = xml['content']
               content = s.parse_string(content_raw)
-              content = content.first if content.size() == 1
               msg = Cirrocumulus::Message.new(sender, act, content)
               msg.receiver = receiver
               msg.reply_with = xml['reply_with']
               msg.in_reply_to = xml['in_reply_to']
+              flatten_message_content(msg)
               agent.handle(msg, kb)
             end
           elsif receiver == @jid
@@ -128,5 +128,17 @@ class Cirrocumulus
     end
 
     @im.disconnect
+  end
+  
+  private
+  
+  def flatten_message_content(message)
+    if !message.content.is_a?(Array)
+      message.content = [message.content]
+    else
+      while message.content.is_a?(Array) && message.content.size == 1 && message.content.first.is_a?(Array)
+        message.content = message.content.first
+      end
+    end
   end
 end
