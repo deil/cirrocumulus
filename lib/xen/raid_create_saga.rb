@@ -100,7 +100,7 @@ class RaidCreateSaga < Saga
 
   private
 
-  @@storages = ['c001s1-storage', 'c001s2-storage']
+  @@storages = ['storage-001.docker.ru-storage'] #['c001s1-storage', 'c001s2-storage']
 
   def create_disk(disk_number, size, storage)
     Log4r::Logger['agent'].debug "[#{id}] creating volume on #{storage}"
