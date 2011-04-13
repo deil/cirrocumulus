@@ -136,7 +136,8 @@ class StorageAgent < Agent
           msg.ontology = @default_ontology
           msg.receiver = message.sender
           msg.in_reply_to = message.reply_with
-          @cm.send(msg) and return
+          @cm.send(msg)
+          return
         end
         
         if StorageNode::delete_volume(disk_number)
@@ -172,7 +173,8 @@ class StorageAgent < Agent
           msg.ontology = @default_ontology
           msg.receiver = message.sender
           msg.in_reply_to = message.reply_with
-          @cm.send(msg) and return
+          @cm.send(msg)
+          return
         end
 
         if StorageNode::create_volume(disk_number, disk_size)
