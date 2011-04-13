@@ -36,7 +36,7 @@ class StorageNode
     Log4r::Logger['os'].debug("done")
 
     lines = res.split("\n")
-    lines.map {|line| line.split(' ').first.gsub("#{VOL_NAME}/") }
+    lines.map {|line| line.split(' ').first.gsub("#{VOL_NAME}/", '') }
   end
 
   def self.volume_exists?(disk_number)
