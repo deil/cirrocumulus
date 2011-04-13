@@ -28,7 +28,7 @@ class StorageNode
   end
   
   def self.list_volumes()
-    cmd = "zfs list | grep /#{VOL_NAME}/xen"
+    cmd = "zfs list | grep #{VOL_NAME}/xen"
     Log4r::Logger['os'].debug("command: " + cmd)
     _, res, err = systemu(cmd)
     Log4r::Logger['os'].debug("output: " + res)
