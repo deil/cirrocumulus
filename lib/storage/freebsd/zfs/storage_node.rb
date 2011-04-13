@@ -41,8 +41,7 @@ class StorageNode
 
   def self.volume_exists?(disk_number)
     all = list_volumes()
-    name = "vd" + disk_number.to_s
-    all.include?(name)
+    all.include?(zfs_disk_name(disk_number)
   end
 
   def self.create_volume(disk_number, size)
@@ -153,6 +152,10 @@ class StorageNode
   end
 
   private
+  
+  def zfs_disk_name(disk_number)
+    "xen-%03d" % disk_number
+  end
 
   def self.grow_volume(volume, size)
     _, res, err = systemu "lvresize -L#{size}g mnekovg/#{volume}"
