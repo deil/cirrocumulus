@@ -16,7 +16,7 @@ class RaidCreateSaga < Saga
     case @state
       when STATE_START
         @results = []
-        @@storages.each do |storage|
+        storages.each do |storage|
           @results << {:storage => storage, :status => :requested}
           create_disk(@disk_number, @size, storage)
         end
@@ -44,7 +44,7 @@ class RaidCreateSaga < Saga
             if @results.all? {|r| r[:status] == :success }
               Log4r::Logger['agent'].info "[#{id}] all volumes created"
               @results = []
-              @@storages.each do |storage|
+              storages.each do |storage|
                 @results << {:storage => storage, :status => :requested}
                 add_export(@disk_number, storage)
               end
@@ -80,7 +80,7 @@ class RaidCreateSaga < Saga
 
       when STATE_CREATING_RAID
         exports = Raid::check_aoe(@disk_number)
-        if exports.size == @@storages.size
+        if exports.size == storages.size
           if Raid::create_raid(@disk_number, exports)
             Log4r::Logger['agent'].info "[#{id}] array /dev/md#{@disk_number} created successfully"
             notify_finish()
@@ -91,7 +91,7 @@ class RaidCreateSaga < Saga
             error()
           end
         else
-          Log4r::Logger['agent'].warn "[#{id}] only this exports are visible: #{exports}, but expected count is #{@@storages.size}"
+          Log4r::Logger['agent'].warn "[#{id}] only this exports are visible: #{exports}, but expected count is #{storages.size}"
           notify_failure(:incorrect_aoe_exports)
           error()
         end
@@ -100,7 +100,9 @@ class RaidCreateSaga < Saga
 
   private
 
-  @@storages = ['c001s1-storage', 'c001s2-storage']
+  def storages
+    @agent.network_map.agents.find_all {|a| a.default_ontology == 'cirrocumulus-storage'}
+  end
 
   def create_disk(disk_number, size, storage)
     Log4r::Logger['agent'].debug "[#{id}] creating volume on #{storage}"
