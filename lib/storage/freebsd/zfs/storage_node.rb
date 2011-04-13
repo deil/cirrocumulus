@@ -153,7 +153,7 @@ class StorageNode
 
   private
   
-  def zfs_disk_name(disk_number)
+  def self.zfs_disk_name(disk_number)
     "xen-%03d" % disk_number
   end
 
