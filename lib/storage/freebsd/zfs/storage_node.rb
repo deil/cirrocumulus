@@ -41,7 +41,7 @@ class StorageNode
 
   def self.volume_exists?(disk_number)
     all = list_volumes()
-    all.include?(zfs_disk_name(disk_number)
+    all.include?(zfs_disk_name(disk_number))
   end
 
   def self.create_volume(disk_number, size)
