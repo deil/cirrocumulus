@@ -94,7 +94,7 @@ class Agent
             end
           end
 
-          process_agent(message)
+          process_agent(message, cm)
         elsif message.act == 'query-ref'
           p message.content
           if message.content.first == :default_ontology
@@ -105,13 +105,13 @@ class Agent
           end
         end
       else
-        process_agent(message)
+        process_agent(message, cm)
       end
     end
 
     private
 
-    def process_agent(message)
+    def process_agent(message, cm)
       agent_id = message.sender
       return if agent_id == @agent.identifier
 
