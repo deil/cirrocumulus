@@ -101,7 +101,7 @@ class RaidCreateSaga < Saga
   private
 
   def storages
-    @agent.network_map.agents.find_all {|a| a.default_ontology == 'cirrocumulus-storage'}
+    @agent.network_map.agents.find_all {|a| a.default_ontology == 'cirrocumulus-storage'}.map {|s| s.identifier }
   end
 
   def create_disk(disk_number, size, storage)

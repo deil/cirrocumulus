@@ -96,7 +96,7 @@ class Agent
 
           process_agent(message, cm)
         elsif message.act == 'query-ref'
-          p message.content
+          #p message.content
           if message.content.first == :default_ontology
             msg = Cirrocumulus::Message.new(nil, 'inform', [:'=', [:default_ontology], [@agent.default_ontology]])
             msg.receiver = message.sender
