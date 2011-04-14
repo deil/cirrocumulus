@@ -44,7 +44,7 @@ class Raid
   def self.create_raid(disk_number, exports)
     devices = exports_to_aoe_devices(exports)
     devices << "missing" if exports.size < 2
-    cmd = "mdadm --create /dev/md#{disk_number} --level=1 --raid-devices=2 -binternal --bitmap-chunk=1024 --metadata=1.2 " + devices.join(' ')
+    cmd = "mdadm --create /dev/md#{disk_number} --force --run --level=1 --raid-devices=2 -binternal --bitmap-chunk=1024 --metadata=1.2 " + devices.join(' ')
     Log4r::Logger['os'].info(cmd)
     _, out, err = systemu(cmd)
     Log4r::Logger['os'].debug("stdout: " + out)

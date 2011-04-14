@@ -104,8 +104,8 @@ class Cirrocumulus
           ontology = xml['ontology']
           sender = message.from.resource
           receiver = xml['receiver']
-          if (agent.handles_ontology? ontology)
-            if sniff || receiver.nil? || receiver == '' || receiver == @jid
+          supported_ontology = agent.handles_ontology?(ontology)
+          if (supported_ontology && (receiver == @jid || receiver.blank?)) || receiver == @jid || sniff
               act = xml['act']
               content_raw = xml['content']
               content = s.parse_string(content_raw)
@@ -116,9 +116,6 @@ class Cirrocumulus
               msg.ontology = ontology
               flatten_message_content(msg)
               agent.handle_message(msg, kb)
-            end
-          elsif receiver == @jid
-            Log4r::Logger['cirrocumulus'].warn "received message with unknown ontology=#{ontology}"
           end
         rescue Exception => e
           #puts e.to_s

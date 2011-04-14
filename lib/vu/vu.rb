@@ -52,10 +52,6 @@ class VpsAgent < Agent
     Log4r::Logger['agent'].info 'initialized VpsAgent'
   end
   
-  def handles_ontology?(ontology)
-    super(ontology) || ontology == 'cirrocumulus-xen'
-  end
-
   def handle(message, kb)
     #p message
     

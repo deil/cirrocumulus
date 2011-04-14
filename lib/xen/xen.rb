@@ -36,10 +36,6 @@ class XenAgent < Agent
     systemu 'aoe-discover'
   end
 
-  def handles_ontology?(ontology)
-    super(ontology) || ontology == 'cirrocumulus-storage'
-  end
-
   def handle(message, kb)
     p message
 
