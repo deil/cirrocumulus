@@ -4,7 +4,6 @@ require 'rubygems'
 require 'active_support'
 require 'active_record'
 require 'systemu'
-require "#{AGENT_ROOT}/dbconfig.rb"
 require "#{AGENT_ROOT}/../cm/logger.rb"
 require "#{AGENT_ROOT}/../cm/saga.rb"
 require "#{AGENT_ROOT}/../cm/agent.rb"
@@ -18,12 +17,10 @@ require "#{AGENT_ROOT}/query_vps_status_saga.rb"
 require "#{AGENT_ROOT}/ping_vpses_saga.rb"
 require "#{AGENT_ROOT}/disk_attach_saga.rb"
 require "#{AGENT_ROOT}/disk_detach_saga.rb"
-require "#{AGENT_ROOT}/storage_disk_history.rb"
-require "#{AGENT_ROOT}/storage_disk.rb"
-require "#{AGENT_ROOT}/vps_configuration_history.rb"
-require "#{AGENT_ROOT}/vps_configuration.rb"
-require "#{AGENT_ROOT}/vps_state.rb"
-require "#{AGENT_ROOT}/storage_disks_vps_configuration.rb"
+
+# load corresponding VPS storage
+require "#{AGENT_ROOT}/vu_config.rb"
+require "#{AGENT_ROOT}/#{VPS_STORAGE_BACKEND}/vps_storage.rb"
 
 #
 # VPS agent.
