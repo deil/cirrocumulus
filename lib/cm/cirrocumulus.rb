@@ -52,9 +52,7 @@ class Cirrocumulus
     hostname.strip!
     @jid = generate_jid ? "#{hostname}-#{suffix}" : suffix
     Log4r::Logger['cirrocumulus'].info "logging as " + @jid
-    @im = Jabber::Simple.new("#{@jid}@#{JABBER_SERVER}", JABBER_DEFAULT_PASSWORD)
-    Log4r::Logger['cirrocumulus'].info 'joining ' + JABBER_CONFERENCE
-    @im.send!("<presence to='#{JABBER_CONFERENCE}/#{@jid}' />")
+    connect()
   end
   
   def send(message)
@@ -94,6 +92,14 @@ class Cirrocumulus
 
     loop do
       kb.collect_knowledge()
+      
+      begin
+        connect() if @im.nil? || !@im.connected?
+      rescue Exception => e
+        puts e.to_s
+      end
+      
+      next if @im.nil? || !@im.connected?
 
       @im.received_messages do |message|
         next if !message.x('jabber:x:delay').nil?
@@ -131,6 +137,31 @@ class Cirrocumulus
   end
   
   private
+  
+  def connect()
+    begin
+      @im.disconnect if @im && @im.connected?
+      full_jid = @jid + "@" + JABBER_SERVER
+      @im = Jabber::Simple.new(full_jid, JABBER_DEFAULT_PASSWORD)
+    rescue Jabber::ClientAuthenticationFailure => ex
+      Log4r::Logger['cirrocumulus'].warn ex.to_s
+      Log4r::Logger['cirrocumulus'].info "registering new account with default password"
+      
+      client = Jabber::Client.new(full_jid)
+      client.connect()
+      client.register(JABBER_DEFAULT_PASSWORD) #, {'username' => full_jid, 'password' => JABBER_DEFAULT_PASSWORD})
+      client.close()
+      @im = Jabber::Simple.new(full_jid, JABBER_DEFAULT_PASSWORD)
+    rescue Exception => ex
+      puts ex
+      #puts ex.backtrace.to_s
+    end
+
+    if !@im.nil? && @im.connected?
+      Log4r::Logger['cirrocumulus'].info 'joining ' + JABBER_CONFERENCE
+      @im.send!("<presence to='#{JABBER_CONFERENCE}/#{@jid}' />")
+    end
+  end
   
   def flatten_message_content(message)
     if !message.content.is_a?(Array)
