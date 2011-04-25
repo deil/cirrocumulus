@@ -17,6 +17,12 @@ For example, for xen agent:
   cd lib/xen
   bundle
 
+To start an agent, just do:
+  cd lib
+  ruby <agentname>/<agentname>_control.rb start
+
+If you don't want to daemonize an agent, use 'run' insted of 'start'.
+
 == Technical
 === Message structure
 

@@ -17,6 +17,25 @@ class XenNode
 
     domus
   end
+  
+  def self.total_vcpus
+    _, res = system('virsh nodeinfo')
+    res =~ /CPU\(s\): +(\d)/
+    $1.to_i
+  end
+  
+  def self.total_mhz
+    _, res = system('virsh nodeinfo')
+    res =~ /CPU frequency: +(\d+) MHz/
+    vcpu_mhz = $1.to_i
+    total_vcpus * vcpu_mhz
+  end
+  
+  def self.total_memory
+    _, res = system('virsh nodeinfo')
+    res =~ /Memory size: +(\d+) kB/
+    $1.to_i / 1024
+  end
 
   def self.free_memory
     _, res = systemu 'virsh freecell'
@@ -24,10 +43,10 @@ class XenNode
   end
 
   def self.get_cpu(domU)
-		_, res = systemu "virsh schedinfo #{domU}"
-		list = res.split("\n")
-		weight = list[1].split(" ")[2].to_i
-		cap = list[2].split(" ")[2].to_i
+    _, res = systemu "virsh schedinfo #{domU}"
+    list = res.split("\n")
+    weight = list[1].split(" ")[2].to_i
+    cap = list[2].split(" ")[2].to_i
 
     [weight, cap]
   end
@@ -39,14 +58,14 @@ class XenNode
   end
 
   def self.get_memory(domU)
-		_, res = systemu "xm list"
-		list = res.split("\n")
-		list.each do |vm|
-			uid = vm.split(' ')[0]
-			mem = vm.split(' ')[2]
+    _, res = systemu "xm list"
+    list = res.split("\n")
+    list.each do |vm|
+      uid = vm.split(' ')[0]
+      mem = vm.split(' ')[2]
 
-			return mem.to_i if uid == domU
-		end
+      return mem.to_i if uid == domU
+    end
   end
 
   def self.start(xml_config)
