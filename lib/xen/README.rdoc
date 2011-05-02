@@ -16,6 +16,14 @@ Reply:
 Request:
   <fipa-message ontology="cirrocumulus-xen" act="query-if"><content>(running (domu "DOMU_NAME"))</content></fipa-message>
 Reply if domU is running:
-  <fipa-message ontology="cirrocumulus-xen" receiver="admin" act="inform"><content>(running (domu "DOMU_NAME"))</content></fipa-message>
+  <fipa-message ontology="cirrocumulus-xen" act="inform"><content>(running (domu "DOMU_NAME"))</content></fipa-message>
 Reply if domU is not running:
-  <fipa-message ontology="cirrocumulus-xen" receiver="admin" act="inform"><content>(not (running (domu "DOMU_NAME")))</content></fipa-message>
+  <fipa-message ontology="cirrocumulus-xen" act="inform"><content>(not (running (domu "DOMU_NAME")))</content></fipa-message>
+
+== Check virtual disk state
+Request:
+  <fipa-message ontology="cirrocumulus-xen" act="query-ref"><content>(state (raid DISK_NUMBER))</content></fipa-message>
+Reply if disk is active:
+  <fipa-message ontology="cirrocumulus-xen" act="inform"><content>(= (state (raid DISK_NUMBER)) (active))</content></fipa-message>
+Reply if disk is not active:
+  <fipa-message ontology="cirrocumulus-xen" act="inform"><content>(= (state (raid DISK_NUMBER)) (stopped))</content></fipa-message>
