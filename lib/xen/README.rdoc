@@ -1,0 +1,6 @@
+= Xen agent
+
+Agent for manipulating Xen node.
+
+Supported ontology:
+  cirrocumulus-xen
