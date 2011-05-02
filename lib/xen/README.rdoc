@@ -41,6 +41,17 @@ Reply if success:
 Reply if failure:
   <fipa-message ontology="cirrocumulus-xen" act="failure"><content>((start (raid DISK_NUMBER)) (REASON))</content></fipa-message>
 
+== Deactivate virtual disk
+Request:
+  <fipa-message ontology="cirrocumulus-xen" act="request"><content>(stop (raid DISK_NUMBER))</content></fipa-message>
+
+Reply if success:
+  <fipa-message ontology="cirrocumulus-xen" act="inform"><content>((stop (raid DISK_NUMBER)) (finished))</content></fipa-message>
+Reply if failure:
+  <fipa-message ontology="cirrocumulus-xen" act="failure"><content>((stop (raid DISK_NUMBER)) (REASON))</content></fipa-message>
+
+This will not stop AoE exports from storages.
+
 == Manipulate virtual servers (domU)
 === Check if domU is running
 Request:
