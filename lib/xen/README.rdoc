@@ -27,3 +27,12 @@ Reply if disk is active:
   <fipa-message ontology="cirrocumulus-xen" act="inform"><content>(= (state (raid DISK_NUMBER)) (active))</content></fipa-message>
 Reply if disk is not active:
   <fipa-message ontology="cirrocumulus-xen" act="inform"><content>(= (state (raid DISK_NUMBER)) (stopped))</content></fipa-message>
+
+== Get visible AoE exports for virtual disk
+Request:
+  <fipa-message ontology="cirrocumulus-xen" act="query-ref"><content>(state (aoe DISK_NUMBER))</content></fipa-message>
+Reply:
+  <fipa-message ontology="cirrocumulus-xen" act="inform"><content>(= (state (aoe DISK_NUMBER)) (LIST OF VISIBLE AOE EXPORTS))</content></fipa-message>
+
+List of visible AoE exports looks like:
+  "e146.1" "e146.2"
