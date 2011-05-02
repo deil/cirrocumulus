@@ -36,3 +36,14 @@ Reply:
 
 List of visible AoE exports looks like:
   "e146.1" "e146.2"
+
+== Activate virtual disk
+Request:
+  <fipa-message ontology="cirrocumulus-xen" act="request"><content>(start (raid DISK_NUMBER))</content></fipa-message>
+
+This will check AoE exports for selected disk number and assemble software raid from them.
+
+Reply if success:
+  <fipa-message ontology="cirrocumulus-xen" act="inform"><content>((start (raid DISK_NUMBER)) (finished))</content></fipa-message>
+Reply if failure:
+  <fipa-message ontology="cirrocumulus-xen" act="failure"><content>((start (raid DISK_NUMBER)) (REASON))</content></fipa-message>
