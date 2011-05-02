@@ -20,7 +20,8 @@ Reply if domU is running:
 Reply if domU is not running:
   <fipa-message ontology="cirrocumulus-xen" act="inform"><content>(not (running (domu "DOMU_NAME")))</content></fipa-message>
 
-== Check virtual disk state
+== Manipulate virtual disks
+=== Check virtual disk state
 Request:
   <fipa-message ontology="cirrocumulus-xen" act="query-ref"><content>(state (raid DISK_NUMBER))</content></fipa-message>
 Reply if disk is active:
@@ -28,7 +29,7 @@ Reply if disk is active:
 Reply if disk is not active:
   <fipa-message ontology="cirrocumulus-xen" act="inform"><content>(= (state (raid DISK_NUMBER)) (stopped))</content></fipa-message>
 
-== Get visible AoE exports for virtual disk
+=== Get visible AoE exports for virtual disk
 Request:
   <fipa-message ontology="cirrocumulus-xen" act="query-ref"><content>(state (aoe DISK_NUMBER))</content></fipa-message>
 Reply:
@@ -37,7 +38,7 @@ Reply:
 List of visible AoE exports looks like:
   "e146.1" "e146.2"
 
-== Activate virtual disk
+=== Activate virtual disk
 Request:
   <fipa-message ontology="cirrocumulus-xen" act="request"><content>(start (raid DISK_NUMBER))</content></fipa-message>
 
