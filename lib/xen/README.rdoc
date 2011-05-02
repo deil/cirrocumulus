@@ -13,4 +13,9 @@ Reply:
   <fipa-message ontology="cirrocumulus-xen" act="inform"><content>(= "(free_memory)" (FREE_RAM_IN_MB))</content></fipa-message>
 
 == Check if domU is running
-
+Request:
+  <fipa-message ontology="cirrocumulus-xen" act="query-if"><content>(running (domu "DOMU_NAME"))</content></fipa-message>
+Reply if domU is running:
+  <fipa-message ontology="cirrocumulus-xen" receiver="admin" act="inform"><content>(running (domu "DOMU_NAME"))</content></fipa-message>
+Reply if domU is not running:
+  <fipa-message ontology="cirrocumulus-xen" receiver="admin" act="inform"><content>(not (running (domu "DOMU_NAME")))</content></fipa-message>
