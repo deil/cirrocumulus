@@ -52,6 +52,20 @@ Reply if failure:
 
 This will not stop AoE exports from storages.
 
+== Create virtual disk
+Request:
+  <fipa-message ontology="cirrocumulus-xen" act="request"><content>(start (raid (disk_number DISK_NUMBER) (size SIZE_IN_GIB)))</content></fipa-message>
+Reply if success:
+  <fipa-message ontology="cirrocumulus-xen" act="inform"><content>((start (raid (disk_number DISK_NUMBER) (size SIZE_IN_GIB))) (finished))</content></fipa-message>
+Reply if failure:
+  <fipa-message ontology="cirrocumulus-xen" act="failure"><content>((start (raid (disk_number DISK_NUMBER) (size SIZE_IN_GIB))) (REASON))</content></fipa-message>
+
+This will:
+ * contact storages
+ * create block devices on each of them
+ * export them to this node via AoE
+ * create local RAID device
+
 == Manipulate virtual servers (domU)
 === Check if domU is running
 Request:
