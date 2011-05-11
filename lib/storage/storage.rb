@@ -28,8 +28,10 @@ class StorageAgent < Agent
       
       if export_should_be_up && !export_is_up
         Log4r::Logger['agent'].info "bringing up export #{disk_number}"
+        StorageNode.add_export(disk_number, 0)
       elsif !export_should_be_up && export_is_up
         Log4r::Logger['agent'].info "shutting down export #{disk_number}"
+        StorageNode.remove_export(disk_number)
       end
     end
     
