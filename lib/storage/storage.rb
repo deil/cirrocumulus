@@ -141,6 +141,7 @@ class StorageAgent < Agent
         end
         
         if StorageNode::remove_export(disk_number)
+          AgentState.update_export_state(disk_number, false)
           msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
           msg.ontology = @default_ontology
           msg.receiver = message.sender
@@ -232,6 +233,7 @@ class StorageAgent < Agent
         end
         
         if StorageNode::add_export(disk_number, disk_slot)
+          AgentState.update_export_state(disk_number, true)
           msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
           msg.ontology = @default_ontology
           msg.receiver = message.sender
