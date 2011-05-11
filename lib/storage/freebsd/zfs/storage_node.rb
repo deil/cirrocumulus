@@ -43,8 +43,8 @@ class StorageNode
     volumes = self.list_volumes()
     res = []
     volumes.each do |v|
-      if v =~ /vd\d/
-        res << v.to_i
+      if v =~ /xen\-\d/
+        res << v.gsub('xen-', '').to_i
       end
     end
 
