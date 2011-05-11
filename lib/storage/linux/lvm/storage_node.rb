@@ -18,6 +18,18 @@ class StorageNode
     lines.map {|line| line.split(' ').first}
   end
   
+  def self.list_disks()
+    volumes = self.list_volumes()
+    res = []
+    volumes.each do |v|
+      if v =~ /vd\d/
+        res << v.gsub('vd', '').to_i
+      end
+    end
+    
+    res
+  end
+  
   def self.volume_exists?(disk_number)
     all = list_volumes()
     name = "vd" + disk_number.to_s

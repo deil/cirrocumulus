@@ -39,6 +39,18 @@ class StorageNode
     lines.map {|line| line.split(' ').first.gsub("#{VOL_NAME}/", '') }
   end
 
+  def self.list_disks()
+    volumes = self.list_volumes()
+    res = []
+    volumes.each do |v|
+      if v =~ /vd\d/
+        res << v.to_i
+      end
+    end
+
+    res
+  end
+
   def self.volume_exists?(disk_number)
     all = list_volumes()
     all.include?(zfs_disk_name(disk_number))

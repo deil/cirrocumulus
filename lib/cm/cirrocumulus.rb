@@ -88,6 +88,8 @@ class Cirrocumulus
   end
 
   def run(agent, kb, sniff = false)
+    agent.restore_state()
+    
     s = Sexpistol.new
 
     loop do

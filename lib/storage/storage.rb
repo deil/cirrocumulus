@@ -13,10 +13,27 @@ require "#{AGENT_ROOT}/../cm/cirrocumulus.rb"
 require "#{AGENT_ROOT}/storage_config.rb"
 require "#{AGENT_ROOT}/#{Cirrocumulus::platform}/#{STORAGE_BACKEND}/storage_node.rb"
 
+require "#{AGENT_ROOT}/storage_db.rb"
+
 class StorageAgent < Agent
   def initialize(cm)
     super(cm)
     @default_ontology = 'cirrocumulus-storage'
+  end
+  
+  def restore_state()
+    StorageNode.list_disks().each do |disk_number|
+      export_is_up = StorageNode.is_exported?(disk_number)
+      export_should_be_up = AgentState.export_should_be_up?(disk_number)
+      
+      if export_should_be_up && !export_is_up
+        Log4r::Logger['agent'].info "bringing up export #{disk_number}"
+      elsif !export_should_be_up && export_is_up
+        Log4r::Logger['agent'].info "shutting down export #{disk_number}"
+      end
+    end
+    
+    Log4r::Logger['agent'].info "restored agent state"
   end
 
   def handle(message, kb)

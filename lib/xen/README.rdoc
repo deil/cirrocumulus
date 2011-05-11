@@ -61,10 +61,10 @@ Reply if failure:
   <fipa-message ontology="cirrocumulus-xen" act="failure"><content>((create (raid (disk_number DISK_NUMBER) (size SIZE_IN_GIB))) (REASON))</content></fipa-message>
 
 This will:
- * contact storages
- * create block devices on each of them
- * export them to this node via AoE
- * create local RAID device
+* contact storages
+* create block devices on each of them
+* export them to this node via AoE
+* create local RAID device
 
 == Manipulate virtual servers (domU)
 === Check if domU is running

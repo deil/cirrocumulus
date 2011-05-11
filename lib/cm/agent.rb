@@ -156,6 +156,9 @@ class Agent
       saga.handle(nil) if saga.timeout == 0
     end
   end
+  
+  def restore_state()
+  end
 
   def handles_ontology?(ontology)
     return @default_ontology == ontology || ontology == 'cirrocumulus-map'
