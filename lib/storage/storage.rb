@@ -28,7 +28,7 @@ class StorageAgent < Agent
       
       if export_should_be_up && !export_is_up
         Log4r::Logger['agent'].info "bringing up export #{disk_number}"
-        StorageNode.add_export(disk_number, 0)
+        StorageNode.add_export(disk_number, storage_number)
       elsif !export_should_be_up && export_is_up
         Log4r::Logger['agent'].info "shutting down export #{disk_number}"
         StorageNode.remove_export(disk_number)
@@ -61,6 +61,15 @@ class StorageAgent < Agent
   end
 
   private
+  
+  def storage_number
+    hostname = `hostname`
+    if hostname =~ /(\d+)$/
+      return $1.to_i
+    end
+    
+    0
+  end
 
   def query(obj)
     msg = Cirrocumulus::Message.new(nil, 'inform', nil)
@@ -143,7 +152,6 @@ class StorageAgent < Agent
         end
         
         if StorageNode::remove_export(disk_number)
-          AgentState.update_export_state(disk_number, false)
           msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
           msg.ontology = @default_ontology
           msg.receiver = message.sender
@@ -235,7 +243,6 @@ class StorageAgent < Agent
         end
         
         if StorageNode::add_export(disk_number, disk_slot)
-          AgentState.update_export_state(disk_number, true)
           msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
           msg.ontology = @default_ontology
           msg.receiver = message.sender
