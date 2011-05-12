@@ -64,7 +64,7 @@ class StorageAgent < Agent
   
   def storage_number
     hostname = `hostname`
-    if hostname =~ /(\d+)$/
+    if hostname =~ STORAGE_HOSTNAME_MASK
       return $1.to_i
     end
     
