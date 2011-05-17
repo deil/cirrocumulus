@@ -3,6 +3,7 @@ source "http://rubygems.org"
 gem 'activesupport', '2.3.11'
 gem 'activerecord', '2.3.11'
 gem 'mysql'
+#gem 'sqlite3-ruby'
 gem 'daemons'
 gem 'xmpp4r'
 gem 'xmpp4r-simple'
