@@ -102,7 +102,7 @@ class StorageNode
   def self.add_export(disk_number, slot)
     name = "vd" + disk_number.to_s
     
-    if !is_exported?(name)
+    if !is_exported?(disk_number)
       _, res = systemu 'cat /etc/ggaoed.conf'
       lines = res.split("\n")
       result = lines
@@ -127,7 +127,7 @@ class StorageNode
   def self.remove_export(disk_number)
     name = "vd" + disk_number.to_s
     
-    if is_exported?(name)
+    if is_exported?(disk_number)
       _, res = systemu 'cat /etc/ggaoed.conf'
       lines = res.split("\n")
       result = []
