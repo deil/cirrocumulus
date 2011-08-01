@@ -198,12 +198,16 @@ class StorageAgent < Agent
 
   # (delete (..))
   def handle_delete_request(obj, message)
+    puts 'delete request'
     obj.each do |param|
       next if !param.is_a? Array
       if param.first == :disk_number
         disk_number = param.second.to_i
       end
     end
+
+    puts 'disk_number = ' + disk_number.to_s
+    puts obj.first
 
     if obj.first == :export
       perform_delete_export(disk_number, message)
