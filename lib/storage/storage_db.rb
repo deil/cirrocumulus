@@ -41,6 +41,11 @@ class VirtualDisk
     fact.save
   end
 
+  def delete
+    fact = KnownFact.current.find_by_key('vd' + @disk_number.to_s)
+    fact.update_attributes(:is_active => false) if fact
+  end
+
 end
 
 class VirtualDiskState
@@ -63,6 +68,11 @@ class VirtualDiskState
     fact = KnownFact.new(:key => 'vd' + @disk_number.to_s + '-state', :is_active => 1) unless fact
     fact.value = @is_up ? 'up' : 'down'
     fact.save
+  end
+
+  def delete
+    fact = KnownFact.current.find_by_key('vd' + @disk_number.to_s + '-state')
+    fact.update_attributes(:is_active => false) if fact
   end
   
 end

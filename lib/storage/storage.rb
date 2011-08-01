@@ -215,6 +215,11 @@ class StorageAgent < Agent
   # (delete (export (disk_number 1)))
   def perform_delete_export(disk_number, message)
     if StorageNode::remove_export(disk_number)
+      state = VirtualDiskState.find_by_disk_number(disk_number)
+      state = VirtualDiskState.new(disk_number, false) unless state
+      state.is_up = false
+      state.save
+
       msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
       msg.ontology = @default_ontology
       msg.receiver = message.sender
@@ -241,6 +246,11 @@ class StorageAgent < Agent
     end
 
     if StorageNode::delete_volume(disk_number)
+      disk = VirtualDisk.find_by_disk_number(disk_number)
+      disk.delete if disk
+      state = VirtualDiskState.find_by_disk_number(disk_number)
+      state.delete if state
+
       msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
       msg.ontology = @default_ontology
       msg.receiver = message.sender
