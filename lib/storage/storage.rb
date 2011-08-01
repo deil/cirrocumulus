@@ -178,6 +178,8 @@ class StorageAgent < Agent
             disk_slot = param.second.to_i
           end
         end
+
+        disk_slot ||= storage_number()
         
         if StorageNode::add_export(disk_number, disk_slot)
           msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
