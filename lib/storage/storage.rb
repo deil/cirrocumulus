@@ -97,56 +97,35 @@ class StorageAgent < Agent
 
   def query_if(obj)
     msg = Cirrocumulus::Message.new(nil, 'inform', nil)
-    if obj.first == :exported
-      disk_number = nil
-      
-      obj.each do |param|
-        next if !param.is_a?(Array)
-        if param.first == :disk_number
-          disk_number = param.second.to_i
-        end
-      end
 
-      msg.content = StorageNode.is_exported?(disk_number) ? Sexpistol.new.to_sexp(obj) : Sexpistol.new.to_sexp([:not, obj])
-    elsif obj.first == :exists
-      obj.each do |param|
-        next if !param.is_a?(Array)
-        if param.first == :volume
-          disk_number = nil
-          
-          volume = param
-          volume.each do |vparam|
-            next if !vparam.is_a?(Array)
-            if vparam.first == :disk_number
-              disk_number = vparam.second.to_i
-            end
-          end
-          
-          if StorageNode::volume_exists?(disk_number)
-            msg.content = obj
-          else
-            msg.content = [:not, obj]
-          end
-        elsif param.first == :export
-          disk_number = nil
-          export = param
-          export.each do |eparam|
-            next if !eparam.is_a?(Array)
-            if eparam.first == :disk_number
-              disk_number = eparam.second.to_i
-            end
-          end
-          
-          if StorageNode::is_exported?(disk_number)
-            msg.content = obj
-          else
-            msg.content = [:not, obj]
-          end
-        end
-      end
+    if obj.first == :exists
+      msg.content = handle_exists_query(obj) ? obj : [:not, obj]
     end
 
     msg
+  end
+
+  # (exists (.. (disk_number ..)))
+  def handle_exists_query(obj)
+    obj.each do |param|
+      next if !param.is_a?(Array)
+      if param.first.is_a?(Symbol)
+        obj_type = param.first
+        disk_number = nil
+        param.each do |dparam|
+          next if !dparam.is_a?(Array)
+          if dparam.first == :disk_number
+            disk_number = dparam.second.to_i
+          end
+        end
+
+        if obj_type == :export
+          return StorageNode::is_exported?(disk_number)
+        elsif obj_type == :volume
+          return StorageNode::volume_exists?(disk_number)
+        end
+      end
+    end
   end
 
   def handle_request(message)
