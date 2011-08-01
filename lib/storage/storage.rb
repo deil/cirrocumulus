@@ -51,7 +51,6 @@ class StorageAgent < Agent
   end
 
   def handle(message, kb)
-    s = Sexpistol.new
     case message.act
       when 'query-ref'
         msg = query(message.content)
