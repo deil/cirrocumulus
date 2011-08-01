@@ -73,10 +73,11 @@ class StorageAgent < Agent
 
   def query(obj)
     msg = Cirrocumulus::Message.new(nil, 'inform', nil)
+
     if obj.first == :free_space
-      msg.content = Sexpistol.new.to_sexp([:'=', obj, [StorageNode.free_space]])
+      msg.content = [:'=', obj, [StorageNode.free_space]]
     elsif obj.first == :used_space
-      msg.content = Sexpistol.new.to_sexp([:'=', obj, [StorageNode.used_space]])
+      msg.content = [:'=', obj, [StorageNode.used_space]]
     end
 
     msg

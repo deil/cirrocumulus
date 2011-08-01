@@ -5,11 +5,11 @@ require 'log4r'
 
 class StorageNode
   def self.free_space
-    `pvs|grep mnekovg`.split("\n").first.split(" ")[5].to_f
+    `pvs --units g|grep mnekovg`.split("\n").first.split(" ")[5].to_f
   end
   
   def self.used_space
-    `pvs|grep mnekovg`.split("\n").first.split(" ")[4].to_f - free_space
+    `pvs --units g|grep mnekovg`.split("\n").first.split(" ")[4].to_f - free_space
   end
   
   def self.list_volumes()
