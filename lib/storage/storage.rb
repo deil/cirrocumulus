@@ -22,19 +22,26 @@ class StorageAgent < Agent
   end
   
   def restore_state()
-    StorageNode.list_disks().each do |disk_number|
-      export_is_up = StorageNode.is_exported?(disk_number)
-      export_should_be_up = AgentState.export_should_be_up?(disk_number)
-      
-      if export_should_be_up && !export_is_up
-        Log4r::Logger['agent'].info "bringing up export #{disk_number}"
-        StorageNode.add_export(disk_number, storage_number)
-      elsif !export_should_be_up && export_is_up
-        Log4r::Logger['agent'].info "shutting down export #{disk_number}"
-        StorageNode.remove_export(disk_number)
+    known_disks = VirtualDisk.all
+    known_disks.each do |disk|
+      if !StorageNode.volume_exists?(disk.disk_number)
+        Log4r::Logger['agent'].warn "volume for disk_number %d does not exist" % [disk.disk_number]
+      else
+        state = VirtualDiskState.find_by_disk_number(disk.disk_number)
+        export_is_up = StorageNode.is_exported?(disk.disk_number)
+        export_should_be_up = state.is_up == true
+
+        if export_should_be_up && !export_is_up
+          Log4r::Logger['agent'].info "bringing up export #{disk_number}"
+          StorageNode.add_export(disk_number, storage_number)
+        elsif !export_should_be_up && export_is_up
+          Log4r::Logger['agent'].info "shutting down export #{disk_number}"
+          StorageNode.remove_export(disk_number)
+        end
+
       end
     end
-    
+
     Log4r::Logger['agent'].info "restored agent state"
   end
 

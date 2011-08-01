@@ -15,6 +15,18 @@ class VirtualDisk
     @size = size
   end
 
+  def self.all
+    disks = []
+    KnownFact.all(:conditions => ['key like "vd%"']).each do |f|
+      if f.key =~ /vd(\d+)$/
+        disk_number = $1.to_i
+        disks << self.find_by_disk_number(disk_number)
+      end
+    end
+
+    disks
+  end
+
   def self.find_by_disk_number(disk_number)
     fact = KnownFact.current.find_by_key('vd' + disk_number.to_s)
     return nil unless fact
@@ -65,13 +77,13 @@ ActiveRecord::Base.establish_connection(
 
 class AgentState
   def self.export_should_be_up?(disk_number)
-    state = ExportState.find_by_disk_number(disk_number)
-    return state && state.is_up? ? true : false
+    state = VirtualDiskState.find_by_disk_number(disk_number)
+    return state && state.is_up == true ? true : false
   end
   
   def self.update_export_state(disk_number, is_up)
-    state = ExportState.find_by_disk_number(disk_number)
-    state = ExportState.new(:disk_number => disk_number) if state.nil?
+    state = VirtualDiskState.find_by_disk_number(disk_number)
+    state = VirtualDiskState.new(disk_number, is_up) unless state
     state.is_up = is_up
     state.save
   end
