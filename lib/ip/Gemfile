@@ -1,0 +1,9 @@
+source "http://rubygems.org"
+
+gem 'daemons'
+gem 'xmpp4r'
+gem 'xmpp4r-simple'
+gem 'sexpistol'
+gem 'log4r'
+gem 'systemu'
+gem 'ruby-ldap'

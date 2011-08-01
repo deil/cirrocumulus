@@ -9,33 +9,13 @@ require "#{AGENT_ROOT}/../cm/agent.rb"
 require "#{AGENT_ROOT}/../cm/kb.rb"
 require "#{AGENT_ROOT}/../cm/cirrocumulus.rb"
 
-# load corresponding backend
-require "#{AGENT_ROOT}/storage_config.rb"
-require "#{AGENT_ROOT}/#{Cirrocumulus::platform}/#{STORAGE_BACKEND}/storage_node.rb"
-
-require "#{AGENT_ROOT}/storage_db.rb"
-
-class StorageAgent < Agent
+class IpAgent < Agent
   def initialize(cm)
     super(cm)
-    @default_ontology = 'cirrocumulus-storage'
+    @default_ontology = 'cirrocumulus-ip'
   end
   
   def restore_state()
-    StorageNode.list_disks().each do |disk_number|
-      export_is_up = StorageNode.is_exported?(disk_number)
-      export_should_be_up = AgentState.export_should_be_up?(disk_number)
-      
-      if export_should_be_up && !export_is_up
-        Log4r::Logger['agent'].info "bringing up export #{disk_number}"
-        StorageNode.add_export(disk_number, storage_number)
-      elsif !export_should_be_up && export_is_up
-        Log4r::Logger['agent'].info "shutting down export #{disk_number}"
-        StorageNode.remove_export(disk_number)
-      end
-    end
-    
-    Log4r::Logger['agent'].info "restored agent state"
   end
 
   def handle(message, kb)
@@ -62,21 +42,12 @@ class StorageAgent < Agent
 
   private
   
-  def storage_number
-    hostname = `hostname`
-    if hostname =~ STORAGE_HOSTNAME_MASK
-      return $1.to_i
-    end
-    
-    0
-  end
-
   def query(obj)
     msg = Cirrocumulus::Message.new(nil, 'inform', nil)
-    if obj.first == :free_space
-      msg.content = Sexpistol.new.to_sexp([:'=', obj, [StorageNode.free_space]])
-    elsif obj.first == :used_space
-      msg.content = Sexpistol.new.to_sexp([:'=', obj, [StorageNode.used_space]])
+    if obj.first == :private_networks
+      msg.content = Sexpistol.new.to_sexp([:'=', obj, ["172.16.11.0/24"]])
+    elsif obj.first == :public_networks
+      msg.content = Sexpistol.new.to_sexp([:'=', obj, ["89.223.109.0/24"]])
     end
 
     msg
@@ -140,7 +111,60 @@ class StorageAgent < Agent
     action = message.content.first
 
     if action == :delete
-      handle_delete_request(message.content.second, message)
+      obj = message.content.second
+
+      if obj.first == :export
+        obj.each do |param|
+          next if !param.is_a? Array
+          if param.first == :disk_number
+            disk_number = param.second.to_i
+          end
+        end
+        
+        if StorageNode::remove_export(disk_number)
+          msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
+          msg.ontology = @default_ontology
+          msg.receiver = message.sender
+          msg.in_reply_to = message.reply_with
+          @cm.send(msg)
+        else
+          msg = Cirrocumulus::Message.new(nil, 'failure', [message.content, [:unknown_reason]])
+          msg.ontology = @default_ontology
+          msg.receiver = message.sender
+          msg.in_reply_to = message.reply_with
+          @cm.send(msg)
+        end
+      elsif obj.first == :volume
+        obj.each do |param|
+          next if !param.is_a? Array
+          if param.first == :disk_number
+            disk_number = param.second.to_i
+          end
+        end
+        
+        if !StorageNode::volume_exists?(disk_number)
+          msg = Cirrocumulus::Message.new(nil, 'refuse', [message.content, [:not_exists]])
+          msg.ontology = @default_ontology
+          msg.receiver = message.sender
+          msg.in_reply_to = message.reply_with
+          @cm.send(msg)
+          return
+        end
+        
+        if StorageNode::delete_volume(disk_number)
+          msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
+          msg.ontology = @default_ontology
+          msg.receiver = message.sender
+          msg.in_reply_to = message.reply_with
+          @cm.send(msg)
+        else
+          msg = Cirrocumulus::Message.new(nil, 'failure', [message.content, [:unknown_reason]])
+          msg.ontology = @default_ontology
+          msg.receiver = message.sender
+          msg.in_reply_to = message.reply_with
+          @cm.send(msg)
+        end
+      end
     elsif action == :create
       obj = message.content.second
       disk_number = disk_size = nil
@@ -204,68 +228,7 @@ class StorageAgent < Agent
       end
     end
   end
-
-  # (delete (..))
-  def handle_delete_request(obj, message)
-    obj.each do |param|
-      next if !param.is_a? Array
-      if param.first == :disk_number
-        disk_number = param.second.to_i
-      end
-    end
-
-    if obj.first == :export
-      perform_delete_export(disk_number, message)
-    elsif obj.first == :volume
-      perform_delete_volume(disk_number, message)
-    end
-  end
-
-  # (delete (export (disk_number 1)))
-  def perform_delete_export(disk_number, message)
-    if StorageNode::remove_export(disk_number)
-      msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
-      msg.ontology = @default_ontology
-      msg.receiver = message.sender
-      msg.in_reply_to = message.reply_with
-      @cm.send(msg)
-    else
-      msg = Cirrocumulus::Message.new(nil, 'failure', [message.content, [:unknown_reason]])
-      msg.ontology = @default_ontology
-      msg.receiver = message.sender
-      msg.in_reply_to = message.reply_with
-      @cm.send(msg)
-    end
-  end
-
-  # (delete (volume (disk_number 1)))
-  def perform_delete_volume(disk_number, message)
-    if !StorageNode::volume_exists?(disk_number)
-      msg = Cirrocumulus::Message.new(nil, 'refuse', [message.content, [:not_exists]])
-      msg.ontology = @default_ontology
-      msg.receiver = message.sender
-      msg.in_reply_to = message.reply_with
-      @cm.send(msg)
-      return
-    end
-
-    if StorageNode::delete_volume(disk_number)
-      msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
-      msg.ontology = @default_ontology
-      msg.receiver = message.sender
-      msg.in_reply_to = message.reply_with
-      @cm.send(msg)
-    else
-      msg = Cirrocumulus::Message.new(nil, 'failure', [message.content, [:unknown_reason]])
-      msg.ontology = @default_ontology
-      msg.receiver = message.sender
-      msg.in_reply_to = message.reply_with
-      @cm.send(msg)
-    end
-  end
-
 end
 
-Log4r::Logger['agent'].info "storage backend = #{STORAGE_BACKEND}"
-cm = Cirrocumulus.new('storage')
-cm.run(StorageAgent.new(cm), Kb.new)
+cm = Cirrocumulus.new('ip')
+cm.run(IpAgent.new(cm), Kb.new)
