@@ -28,6 +28,11 @@ class StorageAgent < Agent
         Log4r::Logger['agent'].warn "volume for disk_number %d does not exist" % [disk.disk_number]
       else
         state = VirtualDiskState.find_by_disk_number(disk.disk_number)
+        if state.nil?
+          Log4r::Logger['agent'].warn "unknown state for virtual disk %d" % [disk.disk_number]
+          next
+        end
+
         export_is_up = StorageNode.is_exported?(disk.disk_number)
         export_should_be_up = state.is_up == true
 
