@@ -34,10 +34,12 @@ class VirtualDisk
     VirtualDisk.new(disk_number, json['size'])
   end
   
-  def save
+  def save(origin = nil, agent = nil)
     fact = KnownFact.current.find_by_key('vd' + @disk_number.to_s)
     fact = KnownFact.new(:key => 'vd' + @disk_number.to_s, :is_active => 1) unless fact
     fact.value = self.to_json
+    fact.origin = origin
+    fact.agent = agent
     fact.save
   end
 
@@ -63,10 +65,12 @@ class VirtualDiskState
     VirtualDiskState.new(disk_number, fact.value == 'up')
   end
   
-  def save
+  def save(origin = nil, agent = nil)
     fact = KnownFact.current.find_by_key('vd' + @disk_number.to_s + '-state')
     fact = KnownFact.new(:key => 'vd' + @disk_number.to_s + '-state', :is_active => 1) unless fact
     fact.value = @is_up ? 'up' : 'down'
+    fact.origin = origin
+    fact.agent = agent
     fact.save
   end
 
