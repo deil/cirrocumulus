@@ -30,7 +30,7 @@ class VirtualDisk
   def self.find_by_disk_number(disk_number)
     fact = KnownFact.current.find_by_key('vd' + disk_number.to_s)
     return nil unless fact
-    json = JSON.parse(fact.value)
+    json = ActiveSupport::JSON.decode(fact.value)
     VirtualDisk.new(disk_number, json['size'])
   end
   

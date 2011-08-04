@@ -161,6 +161,9 @@ class StorageAgent < Agent
       end
 
       if StorageNode::create_volume(disk_number, disk_size)
+        disk = VirtualDisk.new(disk_number, disk_size)
+        disk.save
+
         msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
         msg.ontology = @default_ontology
         msg.receiver = message.sender
