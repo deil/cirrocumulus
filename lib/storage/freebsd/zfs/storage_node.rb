@@ -26,7 +26,7 @@ class StorageNode
     
     used_space
   end
-  
+
   def self.list_volumes()
     cmd = "zfs list | grep #{VOL_NAME}/xen"
     Log4r::Logger['os'].debug("command: " + cmd)
@@ -49,6 +49,10 @@ class StorageNode
     end
 
     res
+  end
+
+  def self.volume_size(disk_number)
+    0
   end
 
   def self.volume_exists?(disk_number)

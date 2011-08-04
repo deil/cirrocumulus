@@ -29,6 +29,16 @@ class StorageNode
     
     res
   end
+
+  def self.volume_size(disk_number)
+    _, res = systemu("lvs mnekovg/vd%d" % [disk_number])
+    lines  = res.split("\n")
+    return 0 if lines.size() < 2
+
+    volume_record = lines[1]
+    volume_attrs = volume_record.split(" ")
+    volume_attrs[3].to_i
+  end
   
   def self.volume_exists?(disk_number)
     all = list_volumes()

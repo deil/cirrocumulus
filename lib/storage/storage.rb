@@ -22,6 +22,16 @@ class StorageAgent < Agent
   end
   
   def restore_state()
+    StorageNode.list_disks().each do |volume|
+      disk = VirtualDisk.find_by_disk_number(volume)
+      next if disk
+
+      disk_size = StorageNode.volume_size(volume)
+      Log4r::Logger['agent'].info "autodiscovered virtual disk %d with size %d Gb" % [volume, disk_size]
+      disk = VirtualDisk.new(volume, disk_size)
+      disk.save('discovered')
+    end
+
     known_disks = VirtualDisk.all
     known_disks.each do |disk|
       if !StorageNode.volume_exists?(disk.disk_number)
