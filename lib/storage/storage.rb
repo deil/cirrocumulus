@@ -22,6 +22,8 @@ class StorageAgent < Agent
   end
   
   def restore_state()
+    changes_made = 0
+
     StorageNode.list_disks().each do |volume|
       disk = VirtualDisk.find_by_disk_number(volume)
       next if disk
@@ -52,15 +54,17 @@ class StorageAgent < Agent
         if export_should_be_up && !export_is_up
           Log4r::Logger['agent'].info "bringing up export #{disk.disk_number}"
           StorageNode.add_export(disk.disk_number, storage_number())
+          changes_made += 1
         elsif !export_should_be_up && export_is_up
           Log4r::Logger['agent'].info "shutting down export #{disk.disk_number}"
           StorageNode.remove_export(disk.disk_number)
+          changes_made += 1
         end
 
       end
     end
 
-    Log4r::Logger['agent'].info "restored agent state"
+    Log4r::Logger['agent'].info "restored agent state, made %d changes" % [changes_made]
   end
 
   def handle(message, kb)
