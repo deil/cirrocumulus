@@ -108,6 +108,7 @@ class XenAgent < Agent
       msg.content = [:'=', message.content, [visible_exports].flatten]
     end
 
+    Log4r::Logger['agent'].info(msg.inspect)
     msg
   end
 
