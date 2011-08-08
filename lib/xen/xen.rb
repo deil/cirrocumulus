@@ -10,6 +10,7 @@ require "#{AGENT_ROOT}/../cm/saga.rb"
 require "#{AGENT_ROOT}/../cm/kb.rb"
 require "#{AGENT_ROOT}/../cm/cirrocumulus.rb"
 require "#{AGENT_ROOT}/xen_node.rb"
+require "#{AGENT_ROOT}/virtual_disk.rb"
 require "#{AGENT_ROOT}/raid.rb"
 require "#{AGENT_ROOT}/raid_assemble_saga.rb"
 require "#{AGENT_ROOT}/raid_stop_saga.rb"
@@ -88,11 +89,23 @@ class XenAgent < Agent
   def query(obj)
     Log4r::Logger['agent'].info(obj.inspect)
 
-    if obj.first == :state
+    if obj.first == :virtual_disk
+      return query_vdisk_state(obj)
+    elsif obj.first == :state
       return query_state(obj.second)
     else
       return query_kb(obj)
     end
+  end
+
+  def query_vdisk_state(obj)
+    disk_number = nil
+    obj.second.each do |param|
+      disk_number = param.second.to_i if param.first == :disk_number
+    end
+
+    disk_state = VirtualDisk::check_state(disk_number)
+    Cirrocumulus::Message.new(nil, 'inform', [:'=', obj, [disk_state]])
   end
 
   def query_state(obj)
