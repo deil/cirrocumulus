@@ -99,7 +99,7 @@ class XenAgent < Agent
     msg = Cirrocumulus::Message.new(nil, 'inform', nil)
 
     if obj.first == :raid
-      disk_id = obj.second.to_i
+      disk_id = obj.second
       raid_state = Raid::check_raid(disk_id)
       msg.content = [:'=', message.content, [raid_state]]
     elsif obj.first == :aoe
