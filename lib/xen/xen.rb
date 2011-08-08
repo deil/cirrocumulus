@@ -101,7 +101,7 @@ class XenAgent < Agent
     if obj.first == :raid
       disk_id = obj.second.to_i
       raid_state = Raid::check_raid(disk_id)
-      msg = msg.content = [:'=', message.content, [raid_state]]
+      msg.content = [:'=', message.content, [raid_state]]
     elsif obj.first == :aoe
       disk_id = obj.second.to_i
       visible_exports = Raid::check_aoe(disk_id)
