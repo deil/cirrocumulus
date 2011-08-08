@@ -32,13 +32,14 @@ class XenAgent < Agent
   def initialize(cm)
     super(cm)
     @default_ontology = 'cirrocumulus-xen'
+  end
+
+  def restore_state()
     XenNode::set_cpu(0, 10000, 0)
     systemu 'aoe-discover'
   end
 
   def handle(message, kb)
-    p message
-
     was_processed = false
     @sagas.each do |saga|
       next if saga.is_finished?
@@ -48,6 +49,7 @@ class XenAgent < Agent
         saga.handle(message)
       end
     end
+
     return if was_processed
 
     s = Sexpistol.new
@@ -69,36 +71,11 @@ class XenAgent < Agent
 
         @cm.send(msg)
       when 'query-ref' then
-        fact = s.to_sexp(message.content)
-        Log4r::Logger['agent'].info "query fact: #{fact}"
-        if message.content.first == :state
-          obj = message.content.second
-          if obj.first == :raid
-            disk_id = obj.second
-            raid_state = Raid::check_raid(disk_id)
-            msg = Cirrocumulus::Message.new(nil, 'inform', s.to_sexp([:'=', message.content, [raid_state]]))
-            msg.receiver = message.sender
-            msg.ontology = @default_ontology
-            msg.in_reply_to = message.reply_with
-            @cm.send(msg)
-          elsif obj.first == :aoe
-            disk_id = obj.second
-            visible_exports = Raid::check_aoe(disk_id)
-            msg = Cirrocumulus::Message.new(nil, 'inform', s.to_sexp([:'=', message.content, [visible_exports].flatten]))
-            msg.receiver = message.sender
-            msg.ontology = @default_ontology
-            msg.in_reply_to = message.reply_with
-            @cm.send(msg)
-          end
-        else
-          query = kb.query_fact(fact)
-          reply = [:'=', fact, [query]]
-          msg = Cirrocumulus::Message.new('', 'inform', s.to_sexp(reply))
-          msg.receiver = message.sender
-          msg.ontology = @default_ontology
-          msg.in_reply_to = message.reply_with
-          @cm.send(msg)
-        end
+        msg = query(message.content)
+        msg.receiver = message.sender
+        msg.ontology = @default_ontology
+        msg.in_reply_to = message.reply_with
+        @cm.send(msg)
       when 'request' then
         handle_request(message)
     end
@@ -106,6 +83,44 @@ class XenAgent < Agent
   end
   
   private
+
+  # <fipa-message ontology="cirrocumulus-xen" act="query-ref"><content></content></fipa-message>
+  def query(obj)
+    if obj.first == :state
+      return query_state(obj.second)
+    else
+      return query_kb(obj)
+    end
+  end
+
+  def query_state(obj)
+    msg = Cirrocumulus::Message.new(nil, 'inform', nil)
+
+    if obj.first == :raid
+      disk_id = obj.second.to_i
+      raid_state = Raid::check_raid(disk_id)
+      msg = msg.content = [:'=', message.content, [raid_state]]
+    elsif obj.first == :aoe
+      disk_id = obj.second.to_i
+      visible_exports = Raid::check_aoe(disk_id)
+      msg.content = [:'=', message.content, [visible_exports].flatten]
+    end
+
+    msg
+  end
+
+  def query_kb(obj)
+    msg = Cirrocumulus::Message.new(nil, 'inform', nil)
+=begin
+          query = kb.query_fact(fact)
+          reply = [:'=', fact, [query]]
+          msg = Cirrocumulus::Message.new('', 'inform', s.to_sexp(reply))
+          msg.receiver = message.sender
+          msg.ontology = @default_ontology
+          msg.in_reply_to = message.reply_with
+          @cm.send(msg)
+=end
+  end
 
   def handle_request(message)
     action = message.content.first
