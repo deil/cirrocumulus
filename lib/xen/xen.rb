@@ -87,7 +87,7 @@ class XenAgent < Agent
 
   # <fipa-message ontology="cirrocumulus-xen" act="query-ref"><content></content></fipa-message>
   def query(obj)
-    Log4r::Logger['agent'].info(obj.inspect)
+    Log4r::Logger['agent'].debug(obj.inspect)
 
     if obj.first == :virtual_disk
       return query_vdisk_state(obj)
@@ -103,6 +103,7 @@ class XenAgent < Agent
     obj.second.each do |param|
       disk_number = param.second.to_i if param.first == :disk_number
     end
+    Log4r::Logger['agent'].info "query virtual disk state (%d)" % [disk_number]
 
     disk_state = VirtualDisk::check_state(disk_number)
     Cirrocumulus::Message.new(nil, 'inform', [:'=', obj, [disk_state]])
