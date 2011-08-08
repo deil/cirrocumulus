@@ -110,6 +110,8 @@ class XenAgent < Agent
 
     Log4r::Logger['agent'].info(msg.inspect)
     msg
+  rescue Error => ex
+    Log4r::Logger['agent'].error(ex)
   end
 
   def query_kb(obj)
