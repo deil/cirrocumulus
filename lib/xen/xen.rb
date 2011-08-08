@@ -100,14 +100,13 @@ class XenAgent < Agent
 
   def query_vdisk_state(obj)
     disk_number = nil
-    p obj
-    obj.second.each do |param|
-      p param
+    obj.each do |param|
+      next if !param.is_a?(Array)
       disk_number = param.second.to_i if param.first == :disk_number
     end
-    Log4r::Logger['agent'].info "query virtual disk state (%d)" % [disk_number]
 
     disk_state = VirtualDisk::check_state(disk_number)
+    Log4r::Logger['agent'].info "query virtual disk state: %d = %s" % [disk_number, disk_state]
     Cirrocumulus::Message.new(nil, 'inform', [:'=', obj, [disk_state]])
   end
 
