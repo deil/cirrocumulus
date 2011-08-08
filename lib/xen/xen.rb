@@ -99,13 +99,9 @@ class XenAgent < Agent
     msg = Cirrocumulus::Message.new(nil, 'inform', nil)
 
     if obj.first == :raid
-      p obj
       disk_id = obj.second
-      p disk_id
       raid_state = Raid::check_raid(disk_id)
-      p raid_state
-      msg.content = [:'=', message.content, [raid_state]]
-      p msg
+      msg.content = [:'=', obj, [raid_state]]
     elsif obj.first == :aoe
       disk_id = obj.second.to_i
       visible_exports = Raid::check_aoe(disk_id)
@@ -114,8 +110,6 @@ class XenAgent < Agent
 
     Log4r::Logger['agent'].info(msg.inspect)
     msg
-  rescue Error => ex
-    Log4r::Logger['agent'].error(ex)
   end
 
   def query_kb(obj)
