@@ -86,7 +86,7 @@ class XenAgent < Agent
 
   # <fipa-message ontology="cirrocumulus-xen" act="query-ref"><content></content></fipa-message>
   def query(obj)
-    puts "query " + obj.inspect
+    Log4r::Logger['agent'].info(obj.inspect)
 
     if obj.first == :state
       return query_state(obj.second)
@@ -96,16 +96,12 @@ class XenAgent < Agent
   end
 
   def query_state(obj)
-    puts "query_state " + obj.inspect
-
     msg = Cirrocumulus::Message.new(nil, 'inform', nil)
 
     if obj.first == :raid
-      puts "raid"
       disk_id = obj.second.to_i
       raid_state = Raid::check_raid(disk_id)
       msg = msg.content = [:'=', message.content, [raid_state]]
-      p msg
     elsif obj.first == :aoe
       disk_id = obj.second.to_i
       visible_exports = Raid::check_aoe(disk_id)

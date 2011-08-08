@@ -14,7 +14,7 @@ class Raid
   end
  
   def self.check_raid(disk_id)
-    _, res = systemu "cat /proc/mdstat | grep md#{disk_id}"
+    _, res = systemu "cat /proc/mdstat | grep md#{disk_id.to_s}"
     lines = res.split("\n")
     return :stopped if lines.blank?
 
