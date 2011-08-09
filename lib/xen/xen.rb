@@ -130,7 +130,7 @@ class XenAgent < Agent
   end
 
   def query_kb(obj)
-    Log4r::Logger.info "query KB"
+    Log4r::Logger['agent'].info "query KB"
     query_result = kb.query_fact(obj)
     Cirrocumulus::Message.new(nil, 'inform', [:'=', obj, [query_result]])
   end
