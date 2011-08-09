@@ -94,7 +94,6 @@ class XenAgent < Agent
     elsif obj.first == :state
       return query_state(obj.second)
     else
-      puts "query_kb"
       return query_kb(obj)
     end
 
@@ -131,7 +130,7 @@ class XenAgent < Agent
   end
 
   def query_kb(obj)
-    Log4r::Logger.info "query KB: %s" % [obj.inspect]
+    Log4r::Logger.info "query KB"
     query_result = kb.query_fact(obj)
     Cirrocumulus::Message.new(nil, 'inform', [:'=', obj, [query_result]])
   end
