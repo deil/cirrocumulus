@@ -88,13 +88,13 @@ class XenAgent < Agent
   # <fipa-message ontology="cirrocumulus-xen" act="query-ref"><content></content></fipa-message>
   def query(obj)
     Log4r::Logger['agent'].debug(obj.inspect)
-    p obj.first
 
     if obj.first == :virtual_disk
       return query_vdisk_state(obj)
     elsif obj.first == :state
       return query_state(obj.second)
     else
+      puts "query_kb"
       return query_kb(obj)
     end
 
