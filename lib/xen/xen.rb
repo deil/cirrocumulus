@@ -128,16 +128,8 @@ class XenAgent < Agent
   end
 
   def query_kb(obj)
-    msg = Cirrocumulus::Message.new(nil, 'inform', nil)
-=begin
-          query = kb.query_fact(fact)
-          reply = [:'=', fact, [query]]
-          msg = Cirrocumulus::Message.new('', 'inform', s.to_sexp(reply))
-          msg.receiver = message.sender
-          msg.ontology = @default_ontology
-          msg.in_reply_to = message.reply_with
-          @cm.send(msg)
-=end
+    query_result = kb.query_fact(obj)
+    Cirrocumulus::Message.new(nil, 'inform', [:'=', obj, [query_result]])
   end
 
   def handle_request(message)
