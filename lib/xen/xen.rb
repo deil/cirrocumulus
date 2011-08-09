@@ -96,6 +96,8 @@ class XenAgent < Agent
     else
       return query_kb(obj)
     end
+
+    Log4r::Logger['agent'].debug 'query() exit'
   end
 
   def query_vdisk_state(obj)
