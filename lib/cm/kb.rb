@@ -11,9 +11,12 @@ class Kb
   end
 
   def query_fact(key)
+    s = Sexpistol.new
+    key_str = s.to_sexp(key)
+
     #puts "query: #{key}"
     @knowledge.each do |h|
-      if h[:key] == key
+      if h[:key] == key_str
         #puts "found: #{h[:value]}"
         return h[:value]
       end
