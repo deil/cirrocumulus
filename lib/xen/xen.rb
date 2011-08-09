@@ -72,7 +72,7 @@ class XenAgent < Agent
 
         @cm.send(msg)
       when 'query-ref' then
-        msg = query(message.content)
+        msg = query(message.content, kb)
         msg.receiver = message.sender
         msg.ontology = @default_ontology
         msg.in_reply_to = message.reply_with
@@ -86,7 +86,7 @@ class XenAgent < Agent
   private
 
   # <fipa-message ontology="cirrocumulus-xen" act="query-ref"><content></content></fipa-message>
-  def query(obj)
+  def query(obj, kb)
     Log4r::Logger['agent'].debug(obj.inspect)
 
     if obj.first == :virtual_disk
@@ -94,7 +94,7 @@ class XenAgent < Agent
     elsif obj.first == :state
       return query_state(obj.second)
     else
-      return query_kb(obj)
+      return query_kb(obj, kb)
     end
 
     Log4r::Logger['agent'].debug 'query() exit'
@@ -129,7 +129,7 @@ class XenAgent < Agent
     msg
   end
 
-  def query_kb(obj)
+  def query_kb(obj, kb)
     Log4r::Logger['agent'].info "query KB: %s" % [obj.inspect]
     query_result = kb.query_fact(obj)
     Log4r::Logger['agent'].debug "result: %s" % [query_result.inspect]
