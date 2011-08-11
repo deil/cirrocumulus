@@ -1,7 +1,7 @@
 require 'xmpp4r'
 require 'xmpp4r-simple'
 require 'sexpistol'
-require File.join(AGENT_ROOT, "../cm/jabber_config.rb")
+require File.join(AGENT_ROOT, 'cm/jabber_config.rb')
 
 class Cirrocumulus
   class Message
@@ -88,6 +88,7 @@ class Cirrocumulus
   end
 
   def run(agent, kb, sniff = false)
+    Log4r::Logger['cirrocumulus'].info("entering main loop")
     agent.restore_state()
     
     s = Sexpistol.new
@@ -126,8 +127,8 @@ class Cirrocumulus
               agent.handle_message(msg, kb)
           end
         rescue Exception => e
-          #puts e.to_s
-          #puts e.backtrace
+          puts e.to_s
+          puts e.backtrace
         end
       end
 

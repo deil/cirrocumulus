@@ -1,0 +1,17 @@
+<log4r_config>
+  <outputter name="console" type="StdoutOutputter" level="DEBUG">
+    <formatter type="Log4r::PatternFormatter">
+      <pattern>=>[%5l %d] %C: %M</pattern>
+    </formatter>
+  </outputter>
+
+  <logger name="os" level="ALL" additive="false" trace="true">
+    <outputter>console</outputter>
+  </logger>
+  <logger name="agent" level="ALL" additive="false" trace="true">
+	  <outputter>console</outputter>
+  </logger>
+  <logger name="cirrocumulus" level="ALL" additive="false" trace="true">
+	  <outputter>console</outputter>
+  </logger>
+</log4r_config>
