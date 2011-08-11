@@ -59,14 +59,14 @@ class StorageOntology < Ontology::Base
       when 'query-ref'
         msg = query(message.content)
         msg.receiver = message.sender
-        msg.ontology = @default_ontology
+        msg.ontology = self.name
         msg.in_reply_to = message.reply_with
         self.agent.send_message(msg)
 
       when 'query-if'
         msg = query_if(message.content)
         msg.receiver = message.sender
-        msg.ontology = @default_ontology
+        msg.ontology = self.name
         msg.in_reply_to = message.reply_with
         self.agent.send_message(msg)
 
@@ -169,7 +169,7 @@ class StorageOntology < Ontology::Base
   def perform_create_volume(disk_number, disk_size, message)
     if StorageNode::volume_exists?(disk_number)
       msg = Cirrocumulus::Message.new(nil, 'refuse', [message.content, [:already_exists]])
-      msg.ontology = @default_ontology
+      msg.ontology = self.name
       msg.receiver = message.sender
       msg.in_reply_to = message.reply_with
       self.agent.send_message(msg)
@@ -181,13 +181,13 @@ class StorageOntology < Ontology::Base
       disk.save('cirrocumulus', message.sender)
 
       msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
-      msg.ontology = @default_ontology
+      msg.ontology = self.name
       msg.receiver = message.sender
       msg.in_reply_to = message.reply_with
       self.agent.send_message(msg)
     else
       msg = Cirrocumulus::Message.new(nil, 'failure', [message.content, [:unknown_reason]])
-      msg.ontology = @default_ontology
+      msg.ontology = self.name
       msg.receiver = message.sender
       msg.in_reply_to = message.reply_with
       self.agent.send_message(msg)
@@ -199,7 +199,7 @@ class StorageOntology < Ontology::Base
   def perform_create_export(disk_number, disk_slot, message)
     if !StorageNode::volume_exists?(disk_number)
       msg = Cirrocumulus::Message.new(nil, 'refuse', [message.content, [:volume_does_not_exist]])
-      msg.ontology = @default_ontology
+      msg.ontology = self.name
       msg.receiver = message.sender
       msg.in_reply_to = message.reply_with
       self.agent.send_message(msg)
@@ -208,7 +208,7 @@ class StorageOntology < Ontology::Base
 
     if StorageNode::is_exported?(disk_number)
       msg = Cirrocumulus::Message.new(nil, 'refuse', [message.content, [:already_exists]])
-      msg.ontology = @default_ontology
+      msg.ontology = self.name
       msg.receiver = message.sender
       msg.in_reply_to = message.reply_with
       self.agent.send_message(msg)
@@ -222,13 +222,13 @@ class StorageOntology < Ontology::Base
       state.save('cirrocumulus', message.sender)
 
       msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
-      msg.ontology = @default_ontology
+      msg.ontology = self.name
       msg.receiver = message.sender
       msg.in_reply_to = message.reply_with
       @cm.send(msg)
     else
       msg = Cirrocumulus::Message.new(nil, 'failure', [message.content, [:unknown_reason]])
-      msg.ontology = @default_ontology
+      msg.ontology = self.name
       msg.receiver = message.sender
       msg.in_reply_to = message.reply_with
       @cm.send(msg)
@@ -261,13 +261,13 @@ class StorageOntology < Ontology::Base
       state.save('cirrocumulus', message.sender)
 
       msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
-      msg.ontology = @default_ontology
+      msg.ontology = self.name
       msg.receiver = message.sender
       msg.in_reply_to = message.reply_with
       self.agent.send_message(msg)
     else
       msg = Cirrocumulus::Message.new(nil, 'failure', [message.content, [:unknown_reason]])
-      msg.ontology = @default_ontology
+      msg.ontology = self.name
       msg.receiver = message.sender
       msg.in_reply_to = message.reply_with
       self.agent.send_message(msg)
@@ -278,7 +278,7 @@ class StorageOntology < Ontology::Base
   def perform_delete_volume(disk_number, message)
     if !StorageNode::volume_exists?(disk_number)
       msg = Cirrocumulus::Message.new(nil, 'refuse', [message.content, [:not_exists]])
-      msg.ontology = @default_ontology
+      msg.ontology = self.name
       msg.receiver = message.sender
       msg.in_reply_to = message.reply_with
       self.agent.send_message(msg)
@@ -292,13 +292,13 @@ class StorageOntology < Ontology::Base
       state.delete if state
 
       msg = Cirrocumulus::Message.new(nil, 'inform', [message.content, [:finished]])
-      msg.ontology = @default_ontology
+      msg.ontology = self.name
       msg.receiver = message.sender
       msg.in_reply_to = message.reply_with
       self.agent.send_message(msg)
     else
       msg = Cirrocumulus::Message.new(nil, 'failure', [message.content, [:unknown_reason]])
-      msg.ontology = @default_ontology
+      msg.ontology = self.name
       msg.receiver = message.sender
       msg.in_reply_to = message.reply_with
       self.agent.send_message(msg)
