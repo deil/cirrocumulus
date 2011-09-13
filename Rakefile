@@ -1,52 +1,53 @@
-# 
-# To change this template, choose Tools | Templates
-# and open the template in the editor.
- 
+# encoding: utf-8
 
 require 'rubygems'
+require 'bundler'
+begin
+  Bundler.setup(:default, :development)
+rescue Bundler::BundlerError => e
+  $stderr.puts e.message
+  $stderr.puts "Run `bundle install` to install missing gems"
+  exit e.status_code
+end
 require 'rake'
-require 'rake/clean'
-require 'rake/gempackagetask'
-require 'rake/rdoctask'
+
+require 'jeweler'
+Jeweler::Tasks.new do |gem|
+  # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
+  gem.name = "cirrocumulus"
+  gem.homepage = "http://github.com/deil/cirrocumulus"
+  gem.license = "GPL-2"
+  gem.summary = "Agent-based infrastructure management system"
+  gem.description = "Engine for building your own agents, providing you base functionality for loading ontologies, communicating with other agents and parsing FIPA-ACL messages"
+  gem.email = "deil@mneko.net"
+  gem.authors = ["Anton Kosyakin"]
+  # dependencies defined in Gemfile
+end
+Jeweler::RubygemsDotOrgTasks.new
+
 require 'rake/testtask'
-
-spec = Gem::Specification.new do |s|
-  s.name = 'cirrocumulus'
-  s.homepage = 'https://github.com/deil/cirrocumulus'
-  s.version = '0.1.1'
-  s.has_rdoc = false
-  s.extra_rdoc_files = ['README.rdoc']
-  s.summary = 'Agent-based infrastructure management system'
-  s.description = 'Engine for agent-based infrastructure management system'
-  s.author = 'Anton Kosyakin'
-  s.email = 'deil@mneko.net'
-  # s.executables = ['your_executable_here']
-  s.files = %w(README.rdoc Rakefile) + Dir.glob("{bin,lib,spec}/**/*")
-  s.require_path = "lib"
-  s.bindir = "bin"
-  s.license = ['GPL-2']
-  s.add_dependency("activesupport", "~> 2.3.11")
-  s.add_dependency("log4r", "~> 1.1.9")
-  s.add_dependency("systemu")
-  s.add_dependency("xmpp4r", "~> 0.5")
-  s.add_dependency("xmpp4r-simple", "~> 0.8.8")
+Rake::TestTask.new(:test) do |test|
+  test.libs << 'lib' << 'test'
+  test.pattern = 'test/**/test_*.rb'
+  test.verbose = true
 end
 
-Rake::GemPackageTask.new(spec) do |p|
-  p.gem_spec = spec
-  p.need_tar = true
-  p.need_zip = true
+require 'rcov/rcovtask'
+Rcov::RcovTask.new do |test|
+  test.libs << 'test'
+  test.pattern = 'test/**/test_*.rb'
+  test.verbose = true
+  test.rcov_opts << '--exclude "gems/*"'
 end
 
+task :default => :test
+
+require 'rake/rdoctask'
 Rake::RDocTask.new do |rdoc|
-  files =['README.rdoc', 'lib/**/*.rb']
-  rdoc.rdoc_files.add(files)
-  rdoc.main = "README" # page to start on
-  rdoc.title = "cirrocumulus Docs"
-  rdoc.rdoc_dir = 'doc/rdoc' # rdoc output folder
-  rdoc.options << '--line-numbers'
-end
+  version = File.exist?('VERSION') ? File.read('VERSION') : ""
 
-#Rake::TestTask.new do |t|
-#  t.test_files = FileList['test/**/*.rb']
-#end
+  rdoc.rdoc_dir = 'rdoc'
+  rdoc.title = "cirrocumulus #{version}"
+  rdoc.rdoc_files.include('README*')
+  rdoc.rdoc_files.include('lib/**/*.rb')
+end
