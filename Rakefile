@@ -13,11 +13,11 @@ require 'rake/testtask'
 spec = Gem::Specification.new do |s|
   s.name = 'cirrocumulus'
   s.homepage = 'https://github.com/deil/cirrocumulus'
-  s.version = '0.1.0'
+  s.version = '0.1.1'
   s.has_rdoc = false
   s.extra_rdoc_files = ['README.rdoc']
-  s.summary = 'Agent-based infrastructure management system engine'
-  s.description = s.summary
+  s.summary = 'Agent-based infrastructure management system'
+  s.description = 'Engine for agent-based infrastructure management system'
   s.author = 'Anton Kosyakin'
   s.email = 'deil@mneko.net'
   # s.executables = ['your_executable_here']
@@ -26,7 +26,10 @@ spec = Gem::Specification.new do |s|
   s.bindir = "bin"
   s.license = ['GPL-2']
   s.add_dependency("activesupport", "~> 2.3.11")
-  s.add_dependency("log4r")
+  s.add_dependency("log4r", "~> 1.1.9")
+  s.add_dependency("systemu")
+  s.add_dependency("xmpp4r", "~> 0.5")
+  s.add_dependency("xmpp4r-simple", "~> 0.8.8")
 end
 
 Rake::GemPackageTask.new(spec) do |p|
