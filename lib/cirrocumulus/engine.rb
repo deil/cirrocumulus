@@ -1,8 +1,4 @@
-require 'xmpp4r'
-require 'xmpp4r-simple'
-require 'sexpistol'
 require 'systemu'
-require 'activesupport'
 
 class Cirrocumulus
   class Message

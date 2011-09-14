@@ -2,6 +2,7 @@ GEM
   remote: http://rubygems.org/
   specs:
     activesupport (2.3.14)
+    deil_sexpistol (0.0.8)
     git (1.2.5)
     jeweler (1.6.4)
       bundler (~> 1.0)
@@ -21,6 +22,7 @@ PLATFORMS
 DEPENDENCIES
   activesupport (~> 2.3.11)
   bundler (~> 1.0.0)
+  deil_sexpistol
   jeweler (~> 1.6.4)
   log4r (~> 1.1.9)
   rcov
