@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{cirrocumulus}
-  s.version = "0.1.2"
+  s.version = "0.1.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Anton Kosyakin"]
@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
     "README.rdoc",
     "Rakefile",
     "VERSION",
+    "cirrocumulus.gemspec",
     "lib/cirrocumulus.rb",
     "lib/cirrocumulus/agent.rb",
     "lib/cirrocumulus/engine.rb",
@@ -51,6 +52,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<systemu>, [">= 0"])
       s.add_runtime_dependency(%q<xmpp4r>, ["~> 0.5"])
       s.add_runtime_dependency(%q<xmpp4r-simple>, ["~> 0.8.8"])
+      s.add_runtime_dependency(%q<deil_sexpistol>, [">= 0"])
       s.add_development_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.6.4"])
       s.add_development_dependency(%q<rcov>, [">= 0"])
@@ -60,6 +62,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<systemu>, [">= 0"])
       s.add_dependency(%q<xmpp4r>, ["~> 0.5"])
       s.add_dependency(%q<xmpp4r-simple>, ["~> 0.8.8"])
+      s.add_dependency(%q<deil_sexpistol>, [">= 0"])
       s.add_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_dependency(%q<jeweler>, ["~> 1.6.4"])
       s.add_dependency(%q<rcov>, [">= 0"])
@@ -70,6 +73,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<systemu>, [">= 0"])
     s.add_dependency(%q<xmpp4r>, ["~> 0.5"])
     s.add_dependency(%q<xmpp4r-simple>, ["~> 0.8.8"])
+    s.add_dependency(%q<deil_sexpistol>, [">= 0"])
     s.add_dependency(%q<bundler>, ["~> 1.0.0"])
     s.add_dependency(%q<jeweler>, ["~> 1.6.4"])
     s.add_dependency(%q<rcov>, [">= 0"])
