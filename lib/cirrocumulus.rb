@@ -1,5 +1,3 @@
-require 'rubygems'
-require 'bundler/setup'
 require 'sexpistol'
 require 'xmpp4r'
 require 'xmpp4r-simple'
