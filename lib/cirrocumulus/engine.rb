@@ -82,7 +82,7 @@ class Cirrocumulus
   end
 
   def run(agent, kb, sniff = false)
-    suffix = agent.default_ontology || @suffix
+    suffix = agent.default_ontology ? agent.default_ontology.gsub('cirrocumulus-') : @suffix
     @jid = if @generate_jid
       _, hostname = systemu 'hostname'
       hostname.strip!
