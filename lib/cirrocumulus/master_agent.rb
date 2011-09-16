@@ -155,6 +155,10 @@ module Agent
       end
     end
 
+    def default_ontology
+      self.ontologies.first.name
+    end
+
     def handles_ontology?(ontology_name)
       self.ontologies.any? {|ontology| ontology.name == ontology_name}
     end

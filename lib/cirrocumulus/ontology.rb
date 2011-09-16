@@ -7,6 +7,7 @@ module Ontology
       @name = name
       @agent = agent
       @sagas = []
+      @saga_idx = 0
     end
 
     def restore_state()
