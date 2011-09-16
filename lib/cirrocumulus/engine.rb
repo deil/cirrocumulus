@@ -45,13 +45,10 @@ class Cirrocumulus
 
   def initialize(suffix, generate_jid = true)
     Log4r::Logger['cirrocumulus'].info 'platform: ' + Cirrocumulus::platform
-    _, hostname = systemu 'hostname'
-    hostname.strip!
-    @jid = generate_jid ? "#{hostname}-#{suffix}" : suffix
-    Log4r::Logger['cirrocumulus'].info "logging as " + @jid
-    connect()
+    @suffix = suffix
+    @generate_jid = generate_jid
   end
-  
+
   def send(message)
     msg = "<fipa-message ontology=\"#{message.ontology}\""
     msg += " receiver=\"#{message.receiver}\"" if message.receiver
@@ -85,6 +82,17 @@ class Cirrocumulus
   end
 
   def run(agent, kb, sniff = false)
+    suffix = agent.default_ontology || @suffix
+    @jid = if @generate_jid
+      _, hostname = systemu 'hostname'
+      hostname.strip!
+      "%s-%s" % [hostname, suffix]
+    else
+      suffix
+    end
+    Log4r::Logger['cirrocumulus'].info "logging as " + @jid
+    connect()
+
     Log4r::Logger['cirrocumulus'].info("entering main loop")
     agent.restore_state()
     

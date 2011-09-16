@@ -156,7 +156,7 @@ module Agent
     end
 
     def default_ontology
-      self.ontologies.first.name
+      self.ontologies.size == 1 ? self.ontologies.first.name : nil
     end
 
     def handles_ontology?(ontology_name)
