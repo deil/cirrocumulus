@@ -129,7 +129,10 @@ class Cirrocumulus
               msg.in_reply_to = xml['in_reply_to']
               msg.ontology = ontology
               flatten_message_content(msg)
+              Log4r::Logger['cirrocumulus'].debug(msg.inspect)
               agent.handle_message(msg, kb)
+          else
+            Log4r::Logger['cirrocumulus'].debug("unhandled ontology %s" % [ontology])
           end
         rescue Exception => e
           puts e.to_s
