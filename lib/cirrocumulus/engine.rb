@@ -82,16 +82,7 @@ class Cirrocumulus
   end
 
   def run(agent, kb, sniff = false)
-    suffix = agent.default_ontology ? agent.default_ontology.gsub('cirrocumulus-', '') : @suffix
-    @jid = if @generate_jid
-      _, hostname = systemu 'hostname'
-      hostname.strip!
-      "%s-%s" % [hostname, suffix]
-    else
-      suffix
-    end
-    Log4r::Logger['cirrocumulus'].info "logging as " + @jid
-    connect()
+    connect(generate_jid(agent))
 
     Log4r::Logger['cirrocumulus'].info("entering main loop")
     agent.restore_state()
@@ -102,9 +93,10 @@ class Cirrocumulus
       kb.collect_knowledge()
       
       begin
-        connect() if @im.nil? || !@im.connected?
+        connect(generate_jid(agent)) if @im.nil? || !@im.connected?
       rescue Exception => e
         puts e.to_s
+        sleep 5
       end
       
       next if @im.nil? || !@im.connected?
@@ -149,7 +141,21 @@ class Cirrocumulus
   
   private
   
-  def connect()
+  def generate_jid(agent)
+    suffix = agent.default_ontology ? agent.default_ontology.gsub('cirrocumulus-', '') : @suffix
+    if @generate_jid
+      _, hostname = systemu 'hostname'
+      hostname.strip!
+      "%s-%s" % [hostname, suffix]
+    else
+      suffix
+    end
+  end
+  
+  def connect(jid)
+    @jid = jid
+    Log4r::Logger['cirrocumulus'].info "logging as " + @jid
+  
     begin
       @im.disconnect if @im && @im.connected?
       full_jid = @jid + "@" + JABBER_SERVER
