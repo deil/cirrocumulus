@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{cirrocumulus}
-  s.version = "0.2.8"
+  s.version = "0.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Anton Kosyakin"]
-  s.date = %q{2011-10-11}
+  s.date = %q{2011-10-19}
   s.description = %q{Engine for building your own agents, providing you base functionality for loading ontologies, communicating with other agents and parsing FIPA-ACL messages}
   s.email = %q{deil@mneko.net}
   s.extra_rdoc_files = [
