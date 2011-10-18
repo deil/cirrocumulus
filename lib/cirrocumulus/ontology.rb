@@ -47,6 +47,13 @@ module Ontology
       puts "call to dummy Ontology::Base.handle_message()"
     end
 
+    def create_saga(saga_class)
+      @saga_idx += 1
+      saga = saga_class.new(saga_class.to_s + '-' + @saga_idx.to_s, self)
+      @sagas << saga
+      saga
+    end
+
     def logger
       Log4r::Logger['agent']
     end

@@ -11,10 +11,9 @@ class Saga
   STATE_START = 0
   STATE_FINISHED = 255
 
-  def initialize(id, cm, agent)
-    @agent = agent
-    @cm = cm
+  def initialize(id, ontology)
     @id = id
+    @ontology = ontology
     @finished = false
     @timeout = -1
     @state = STATE_START
