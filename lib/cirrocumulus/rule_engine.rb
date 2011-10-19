@@ -22,22 +22,26 @@ module RuleEngine
       log "Empty ruleset" if self.class.current_ruleset.empty?
     end
 
-    def assert(fact)
+    def assert(fact, silent = false)
       log "assert: #{fact.inspect}"
 
       @facts = [] if @facts.nil?
       @facts << fact
-      process()
+      process() if !silent
     end
 
-    def retract(fact)
+    def retract(fact, silent = false)
       @facts = [] if @facts.nil?
       if @facts.delete(fact)
         log "retract: #{fact.inspect}"
-        process()
+        process() if !silent
       else
         puts "fact #{fact.inspect} not found"
       end
+    end
+    
+    def execute()
+      process()
     end
 
     protected
@@ -61,34 +65,132 @@ module RuleEngine
     end
 
     def matches?(rule)
-      matched_patterns = 0
-      rule_params = {}
+      debug "Processing rule '#{rule[:name]}' (#{rule[:facts].size} condition(s))"
+
+      pattern_candidates = []
       rule[:facts].each do |pattern|
-        @facts.each do |fact|
-          binded_params = pattern_matches?(fact, pattern, rule_params)
-          if binded_params
-            rule_params.merge!(binded_params)
-            matched_patterns += 1
+        pattern_candidates << match_pattern(pattern)
+      end
+      
+      return nil if !pattern_candidates.all? {|c| c.size > 0}
+
+      debug "Rule '#{rule[:name]}' has candidates for each pattern"
+      
+      match_parameters(rule, pattern_candidates)
+    end
+    
+    def match_pattern(pattern)
+      debug "Attempting to match pattern #{pattern.inspect}"
+      fact_matches = true
+      candidates = []
+      
+      @facts.each do |fact|
+        next if fact.size != pattern.size
+        fact_matches = true
+        
+        pattern.each_with_index do |el,i|
+          if el.is_a?(Symbol) && el.to_s.upcase == el.to_s # parameter
+          else
+            fact_matches = false if el != fact[i]
           end
+        end
+        
+        candidates << fact if fact_matches
+      end
+      
+      debug "Found #{candidates.size} candidate(s)"
+      candidates
+    end
+    
+    def match_parameters(rule, candidates)
+      debug "Attempting to match parameters"
+      
+      result = []
+      attempt = []
+      while (attempt = generate_combination(rule, candidates, attempt)) != [] do
+        bindings = test_combination(rule, candidates, attempt)
+        if bindings
+          debug "Matched! %s" % bindings.inspect
+          result << bindings
         end
       end
       
-      return nil if matched_patterns < rule[:facts].size
+      result
+    end
+    
+    def test_combination(rule, candidates, attempt)
+      facts = []
+      attempt.each_with_index {|a,i| facts << candidates[i][a]}
+      debug "Testing combination #{attempt.inspect}: %s" % facts.inspect
 
-      rule_params
+      binded_params = {}
+      pattern_params = {}
+      facts.each_with_index do |fact,i|
+        pattern_params = bind_parameters(rule[:facts][i], fact, binded_params)
+        if pattern_params.nil? # failure, parameters mismatch
+          return nil
+        else
+          binded_params.merge!(pattern_params)
+        end
+      end
+      
+      binded_params
+    end
+    
+    def bind_parameters(pattern, fact, current_bindings)
+      result = {}
+
+      pattern.each_with_index do |p,i|
+        if p.is_a?(Symbol) && p.to_s.upcase == p.to_s
+          return nil if current_bindings.has_key?(p) && current_bindings[p] != fact[i]
+          result[p] = fact[i]
+        end
+      end
+      
+      result
+    end
+    
+    def generate_combination(rule, candidates, attempt)
+      next_attempt = []
+      
+      if attempt == []
+        rule[:facts].each {|pattern| next_attempt << 0}
+      else
+        next_attempt = increment_attempt(attempt, rule[:facts].size - 1, candidates.map {|c| c.size})
+      end
+      
+      next_attempt
+    end
+    
+    def increment_attempt(attempt, idx, limits)
+      return [] if idx < 0
+      
+      if attempt[idx] < limits[idx] - 1
+        attempt[idx] += 1
+      else
+        i = idx
+        while i < limits.size do
+          attempt[i] = 0
+          i += 1
+        end
+
+        return increment_attempt(attempt, idx-1, limits)
+      end
+        
+      attempt
     end
     
     def pattern_matches?(fact, pattern, current_params = {})
       return nil if fact.size != pattern.size
 
-      #puts "DEBUG: testing pattern %s against fact %s" % [pattern.inspect, fact.inspect]
-      #puts "DEBUG: current parameters binding is %s" % current_params.inspect
+      puts "DEBUG: testing pattern %s against fact %s" % [pattern.inspect, fact.inspect]
+      puts "DEBUG: current parameters binding is %s" % current_params.inspect
       
       binded_params = {}
       
       pattern.each_with_index do |el,i|
         if el.is_a?(Symbol) && el.to_s.upcase == el.to_s
-          #puts "DEBUG: need to bind parameter %s" % el.to_s
+          puts "DEBUG: need to bind parameter %s" % el.to_s
           if current_params && current_params.has_key?(el)
             current_value = current_params[el]
             return nil if fact[i] != current_value
@@ -100,21 +202,23 @@ module RuleEngine
         end
       end
       
-      #puts "DEBUG: match! binding parameters: %s" % binded_params.inspect 
+      puts "DEBUG: match! binding parameters: %s" % binded_params.inspect 
       binded_params
     end
 
-    def execute(rule, params)
+    def execute_rule(rule, params)
       debug "executing rule '#{rule[:name]}'"
       rule[:body].call(self, params)
     end
-
+    
     def process()
       self.class.current_ruleset.each do |rule|
         binded_params = matches?(rule)
-        execute(rule, binded_params) unless binded_params.nil?
+        next if binded_params.nil?
+        binded_params.each {|params| execute_rule(rule, params)}
       end
     end
-
+    
   end
+ 
 end

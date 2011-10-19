@@ -15,14 +15,26 @@ class Test < RuleEngine::Base
   end
 end
 
-class Test2 < RuleEngine::Base
-end
-
 e = Test.new
-e1 = Test2.new
-e.assert [:virtual_disk, 666, :active]
-e.assert [:mdraid, 666, :failed]
-e.dump_ruleset
-e.dump_kb
-e.retract [:mdraid, 666, :failed]
-e.dump_kb
+e.assert [:virtual_disk, 163, :active]
+#e.assert [:virtual_disk, 139, :active]
+#e.assert [:virtual_disk, 145, :active]
+#e.assert [:virtual_disk, 146, :active]
+#e.assert [:virtual_disk, 149, :active]
+e.assert [:virtual_disk, 153, :active]
+#e.assert [:virtual_disk, 154, :active]
+#e.assert [:virtual_disk, 156, :active]
+e.assert [:virtual_disk, 158, :active]
+#e.assert [:virtual_disk, 137, :active]
+#e.assert [:virtual_disk, 135, :active]
+#e.assert [:virtual_disk, 159, :active]
+#e.assert [:virtual_disk, 103, :active]
+#e.assert [:virtual_disk, 102, :active]
+#e.assert [:virtual_disk, 20, :active]
+#e.assert [:virtual_disk, 2, :active]
+#e.assert [:virtual_disk, 777, :active]
+#e.assert [:virtual_disk, 90, :active]
+e.assert [:mdraid, 153, :failed], true
+e.assert [:mdraid, 158, :failed], true
+e.execute()
+gets
