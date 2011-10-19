@@ -49,3 +49,5 @@ pkg
 
 # development and config files
 .idea
+
+lib/test.rb
