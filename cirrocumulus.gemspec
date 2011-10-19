@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{cirrocumulus}
-  s.version = "0.3.0"
+  s.version = "0.4.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Anton Kosyakin"]
@@ -32,7 +32,9 @@ Gem::Specification.new do |s|
     "lib/cirrocumulus/logger.rb",
     "lib/cirrocumulus/master_agent.rb",
     "lib/cirrocumulus/ontology.rb",
+    "lib/cirrocumulus/rule_engine.rb",
     "lib/cirrocumulus/saga.rb",
+    "lib/test.rb",
     "test/helper.rb",
     "test/test_cirrocumulus.rb"
   ]
