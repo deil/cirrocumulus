@@ -33,6 +33,7 @@ module RuleEngine
     def retract(fact)
       @facts = [] if @facts.nil?
       if @facts.delete(fact)
+        log "retract: #{fact.inspect}"
         process()
       else
         puts "fact #{fact.inspect} not found"
