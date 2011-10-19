@@ -5,25 +5,26 @@ module RuleEngine
     end
     
     def dump_kb()
-      puts "Dumping current knowledge base:\n"
+      log "Dumping current knowledge base:\n"
       @facts.each_with_index do |fact,i|
-        puts "%d) %s" % [i, fact.inspect]
+        log "%d) %s" % [i, fact.inspect]
       end
       
-      puts "Empty" if @facts.empty?
+      log "Empty" if @facts.empty?
     end
     
     def dump_ruleset()
-      puts "Dumping current ruleset:\n"
+      log "Dumping current ruleset:\n"
       self.class.current_ruleset.each_with_index do |rule,i|
-        puts "%d) %s" % [i, rule[:name]]
+        log "%d) %s" % [i, rule[:name]]
       end
       
-      puts "Empty ruleset" if self.class.current_ruleset.empty?
+      log "Empty ruleset" if self.class.current_ruleset.empty?
     end
 
     def assert(fact)
-      puts "ASSERT FACT: #{fact.inspect}"
+      log "assert: #{fact.inspect}"
+
       @facts = [] if @facts.nil?
       @facts << fact
       process()
@@ -44,6 +45,18 @@ module RuleEngine
     
     def self.current_ruleset()
       return @@loaded_rules[self.name] ||= []
+    end
+    
+    def log(msg)
+      Log4r::Logger['kb'].info(msg)
+    rescue
+      puts "[INFO] %s" % msg
+    end
+    
+    def debug(msg)
+      Log4r::Logger['kb'].debug(msg)
+    rescue
+      puts "[DEBUG] %s" % msg
     end
 
     def matches?(rule)
@@ -67,14 +80,14 @@ module RuleEngine
     def pattern_matches?(fact, pattern, current_params = {})
       return nil if fact.size != pattern.size
 
-      puts "DEBUG: testing pattern %s against fact %s" % [pattern.inspect, fact.inspect]
-      puts "DEBUG: current parameters binding is %s" % current_params.inspect
+      #puts "DEBUG: testing pattern %s against fact %s" % [pattern.inspect, fact.inspect]
+      #puts "DEBUG: current parameters binding is %s" % current_params.inspect
       
       binded_params = {}
       
       pattern.each_with_index do |el,i|
         if el.is_a?(Symbol) && el.to_s.upcase == el.to_s
-          puts "DEBUG: need to bind parameter %s" % el.to_s
+          #puts "DEBUG: need to bind parameter %s" % el.to_s
           if current_params && current_params.has_key?(el)
             current_value = current_params[el]
             return nil if fact[i] != current_value
@@ -86,12 +99,12 @@ module RuleEngine
         end
       end
       
-      puts "DEBUG: match! binding parameters: %s" % binded_params.inspect 
+      #puts "DEBUG: match! binding parameters: %s" % binded_params.inspect 
       binded_params
     end
 
     def execute(rule, params)
-      puts "DEBUG: executing rule: #{rule[:name]}"
+      debug "executing rule '#{rule[:name]}'"
       rule[:body].call(self, params)
     end
 
