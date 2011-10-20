@@ -42,6 +42,11 @@ module RuleEngine
       end
     end
     
+    def query(fact)
+      @facts = [] if @facts.nil?
+      return @facts.include? fact
+    end
+    
     def execute()
       process()
     end
