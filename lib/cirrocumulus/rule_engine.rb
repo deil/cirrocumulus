@@ -23,9 +23,11 @@ module RuleEngine
     end
 
     def assert(fact, silent = false)
+      @facts = [] if @facts.nil?
+      return if @facts.include? fact
+
       log "assert: #{fact.inspect}"
 
-      @facts = [] if @facts.nil?
       @facts << fact
       process() if !silent
     end
