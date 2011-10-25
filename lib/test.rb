@@ -10,6 +10,10 @@ class Test < RuleEngine::Base
     engine.assert([:temperature, y, 'C'])
   end
   
+  rule 'guest_powered_off', [[:guest, :X, :powered_off]] do |engine, params|
+    puts "guest_powered_off"
+  end
+  
   rule 'monitor_md', [[:virtual_disk, :X, :active], [:mdraid, :X, :failed]] do |engine, params|
     # md devices is failed, but virtual disk should be up
     p params
@@ -17,9 +21,14 @@ class Test < RuleEngine::Base
   end
 end
 
-RuleEngine::Server.run()
+#RuleEngine::Server.run()
 
 e = Test.new
+e.assert [:guest, "233bed174ab0802fd908f981d64d185b", :powered_off]
+e.assert [:guest, "233bed174ab0802fd908f981d64d185b", :running]
+p e.match [:guest, "233bed174ab0802fd908f981d64d185b", :running]
+gets
+exit(0)
 e.assert [:virtual_disk, 163, :active]
 #e.assert [:virtual_disk, 139, :active]
 #e.assert [:virtual_disk, 145, :active]

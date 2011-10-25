@@ -47,6 +47,15 @@ module RuleEngine
       return @facts.include? fact
     end
     
+    def match(pattern)
+      res = []
+      match_pattern(pattern).each do |fact|
+        res << bind_parameters(pattern, fact, {})
+      end
+      
+      res
+    end
+    
     def execute()
       process()
     end
