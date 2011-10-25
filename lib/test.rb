@@ -1,7 +1,9 @@
 require 'cirrocumulus/rule_engine.rb'
+require 'cirrocumulus/rule_server.rb'
 
 class Test < RuleEngine::Base
   rule 'convert', [[:temperature, :X, 'F']] do |engine, params|
+    puts "qqq"
     x = params[:X].to_i
     engine.retract([:temperature, x, 'F'])
     y = 5*(x - 32)/9
@@ -14,6 +16,8 @@ class Test < RuleEngine::Base
     puts "virtual disk #{params[:X]} should be up, but corresponding md devices is failed!"
   end
 end
+
+RuleEngine::Server.run()
 
 e = Test.new
 e.assert [:virtual_disk, 163, :active]

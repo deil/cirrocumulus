@@ -2,6 +2,7 @@ module Ontology
   class Base
     attr_reader :name
     attr_reader :agent
+    attr_reader :sagas
 
     def initialize(name, agent)
       @name = name

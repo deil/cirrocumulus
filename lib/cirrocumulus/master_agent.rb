@@ -186,7 +186,11 @@ module Agent
 
     def handle_message(message, kb)
       @network_map.handle_message(message, @cm)
-      self.ontologies.each {|ontology| ontology.handle_incoming_message(message, kb) or return if message.ontology == ontology.name} # return from loop if message was handled; 'or' is correct
+      self.ontologies.each {|ontology|
+        if message.ontology == ontology.name || ontology.sagas.any? {|saga| saga.id == message.in_reply_to}
+          ontology.handle_incoming_message(message, kb)
+        end
+      }
     rescue Exception => e
       Log4r::Logger['agent'].warn "failed to handle incoming message: %s" % e.to_s
       puts e.backtrace.to_s
