@@ -26,6 +26,9 @@ end
 e = Test.new
 e.assert [:guest, "233bed174ab0802fd908f981d64d185b", :powered_off]
 e.assert [:guest, "233bed174ab0802fd908f981d64d185b", :running]
+e.assert [:guest, "233bed174ab0802fd908f981d64d185b", :state, :powered_on]
+e.replace [:guest, "233bed174ab0802fd908f981d64d185b", :state, :STATE], :powered_off
+
 p e.match [:guest, "233bed174ab0802fd908f981d64d185b", :running]
 gets
 exit(0)
