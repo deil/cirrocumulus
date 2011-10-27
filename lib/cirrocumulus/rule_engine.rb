@@ -38,7 +38,26 @@ module RuleEngine
         log "retract: #{fact.inspect}"
         process() if !silent
       else
-        puts "fact #{fact.inspect} not found"
+        #puts "fact #{fact.inspect} not found"
+      end
+    end
+    
+    def replace(pattern, values)
+      log "replace: #{pattern.inspect} => #{values.inspect}"
+      
+      data = match(pattern)
+      data.each do |match_data|
+        old_fact = pattern.clone
+        new_fact = pattern.clone
+        pattern.each_with_index do |item,i|
+          if match_data.include? item
+            old_fact[i] = match_data[item]
+            new_fact[i] = values.is_a?(Hash) ? values[item] : values
+          end
+        end
+        
+        retract(old_fact, true)
+        assert(new_fact)
       end
     end
     
