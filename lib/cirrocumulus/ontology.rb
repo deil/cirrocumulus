@@ -11,6 +11,7 @@ module Ontology
       @saga_idx = 0
     end
 
+    # Restores saved state. Called once at initialization
     def restore_state()
       puts "call to dummy Ontology::Base.restore_state()"
     end

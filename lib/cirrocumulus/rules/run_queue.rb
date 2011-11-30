@@ -5,63 +5,77 @@ module RuleEngine
     attr_reader :rule
     attr_reader :params
     attr_reader :run_at
+    attr_accessor :state
 
     def initialize(rule, params, run_at = nil)
       @rule = rule
       @params = params
       @run_at = run_at
+      @state = :queued
     end
   end
 
   class RunQueue
     def initialize(engine)
       @engine = engine
-      @queue = Queue.new
-      @queue_tmp = []
+      @queue = []
+      @running_rules = []
+      @mutex = Mutex.new
     end
 
     def enqueue(rule, params)
-      if !already_queued?(rule, params)
-        if !rule.options.blank? && rule.options.include?(:for)
-          delay = rule.options[:for]
-          run_at = Time.now + delay
-          debug "Will run this rule after #{delay.to_s} sec (at #{run_at.strftime("%H:%M:%S %d.%m.%Y")})"
-          @queue.push QueueEntry.new(rule, params, run_at)
-          @queue_tmp << QueueEntry.new(rule, params, run_at)
-        else
-          @queue.push QueueEntry.new(rule, params)
-          @queue_tmp << QueueEntry.new(rule, params)
+      @mutex.synchronize do
+        if !already_queued?(rule, params)
+          debug "Enqueueing rule #{rule.name}#{params.inspect}"
+
+          if !rule.options.blank? && rule.options.include?(:for)
+            delay = rule.options[:for]
+            run_at = Time.now + delay
+            debug "Will run this rule after #{delay.to_s} sec (at #{run_at.strftime("%H:%M:%S %d.%m.%Y")})"
+            @queue << QueueEntry.new(rule, params, run_at)
+          else
+            @queue << QueueEntry.new(rule, params)
+          end
         end
       end
     end
 
     def run_queued_rules()
-      if @queue.size > 0
-        debug "There are #{@queue.size} rules waiting, running.." if @queue.size > 1
+      rules_for_running = Queue.new
+      @mutex.synchronize do
+        count = @queue.count {|entry| entry.state == :queued}
 
-        @queue_tmp.clear()
-        idx = @queue.size
+        if count > 0
+          debug "There are #{count} rules waiting, running.." if count > 1
 
-        while idx > 0
-          entry = @queue.pop
+          idx = 0
+          while count > 0
+            entry = @queue[idx]
 
-          if entry.run_at.blank? || (entry.run_at <= Time.now)
-            rule = entry.rule
-            params = entry.params
+            if entry.state != :queued
+              idx += 1
+              next
+            end
 
-            begin
-              debug "Executing #{rule.name}#{params.inspect}"
-              rule.code.call(@engine, params)
-            rescue; end
-          else
-            @queue << entry
-            @queue_tmp << entry
+            if entry.run_at.blank? || (entry.run_at <= Time.now)
+              rules_for_running << entry
+              entry.state = :running
+            end
+
+            count -= 1
           end
-
-          idx -= 1
         end
+      end
 
-        @queue_tmp.clear()
+      while !rules_for_running.empty? do
+        entry = rules_for_running.pop
+        begin
+          debug "Executing #{entry.rule.name}#{entry.params.inspect}"
+          entry.rule.code.call(@engine, entry.params)
+          entry.state = :finished # TODO: cleanup @queue from this entries
+        rescue Exception => e
+          Log4r::Logger['kb'].warn "Exception while executing rule: %s\n%s" % [e.to_s, e.backtrace.to_s]
+        end
       end
     end
 
@@ -70,9 +84,9 @@ module RuleEngine
     def already_queued?(rule, params)
       return false if @queue.empty?
 
-      @queue_tmp.each do |queued_rule|
+      @queue.each do |queued_rule|
         next if queued_rule.rule.name != rule.name
-        return true if params === queued_rule.params
+        return true if params === queued_rule.params && queued_rule.state != :finished
       end
 
       false

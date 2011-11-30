@@ -89,18 +89,8 @@ class Cirrocumulus
   end
 
   # Sends message to other agents
-  def send(message)
+  def send_message(message)
     @send_queue << message
-    msg = "<fipa-message ontology=\"#{message.ontology}\""
-    msg += " receiver=\"#{message.receiver}\"" if message.receiver
-    msg += " act=\"#{message.act}\""
-    msg += " reply-with=\"#{message.reply_with}\"" if message.reply_with
-    msg += " in-reply-to=\"#{message.in_reply_to}\"" if message.in_reply_to
-    msg += " conversation-id=\"#{message.conversation_id}\"" if message.conversation_id
-    message_content = message.content if message.content.is_a?(String)
-    message_content = Sexpistol.new.to_sexp(message.content) if message.content.is_a? Array
-    msg += "><content>#{message_content}</content></fipa-message>"
-    @im.send!("<message type=\"groupchat\" to=\"#{JABBER_CONFERENCE}\" id=\"aaefa\"><body>#{msg.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;')}</body></message>")
   end
 
 =begin
@@ -131,6 +121,7 @@ class Cirrocumulus
 
     Log4r::Logger['cirrocumulus'].info("entering main loop")
     agent.restore_state()
+    agent.start()
 
     s = Sexpistol.new
     should_be_running = true
@@ -152,9 +143,10 @@ class Cirrocumulus
         process_incoming_message(agent, kb, message, s, sniff)
       end
 
-      # pass execution to agent instance
-      agent.tick()
-      sleep 0.5
+      # send all queued messages
+      process_send_queue()
+
+      sleep 0.5 # TODO: do we need this stuff?
     end
 
     @im.disconnect
@@ -242,12 +234,12 @@ class Cirrocumulus
 
         flatten_message_content(msg)
         Log4r::Logger['cirrocumulus'].debug(msg.inspect)
-        agent.handle_message(msg, kb)
+        agent.handle_message(msg)
       else # ignore message
         #Log4r::Logger['cirrocumulus'].debug("unhandled ontology: %s" % [ontology])
       end
     rescue Exception => e # exception while parsing; possibly it is not XML (humans speaking!)
-      Log4r::Logger['cirrocumulus'].error("%s\n%s" % e.to_s, e.backtrace)
+      Log4r::Logger['cirrocumulus'].error "%s\n%s" % [e.to_s, e.backtrace.to_s]
     end
   end
 
@@ -255,7 +247,7 @@ class Cirrocumulus
   def process_send_queue()
     while !@send_queue.empty? do
       message = @send_queue.pop
-      !actual_send(message)
+      actual_send(message)
     end
   end
 

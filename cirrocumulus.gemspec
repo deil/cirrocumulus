@@ -30,7 +30,6 @@ Gem::Specification.new do |s|
     "lib/cirrocumulus/engine.rb",
     "lib/cirrocumulus/kb.rb",
     "lib/cirrocumulus/logger.rb",
-    "lib/cirrocumulus/master_agent.rb",
     "lib/cirrocumulus/ontology.rb",
     "lib/cirrocumulus/rule_engine.rb",
     "lib/cirrocumulus/rule_server.rb",

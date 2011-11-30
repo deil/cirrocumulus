@@ -1,3 +1,5 @@
+require 'thread'
+
 module RuleEngine
   class RuleDescription
     attr_reader :name
@@ -23,6 +25,7 @@ module RuleEngine
       @queue = RunQueue.new(self)
       @facts = []
       @fact_times = {}
+      @mutex = Mutex.new
     end
 
     def dump_kb()
@@ -45,43 +48,35 @@ module RuleEngine
     end
 
     def assert(fact, silent = false)
-      return if @facts.include? fact
-
-      time = DateTime.now
-      log "assert: %s" % fact.inspect
-
-      @facts << fact
-      @fact_times[fact] = time
-
-      process() if !silent
+      @mutex.synchronize do
+        assert_nonblocking(fact, silent)
+      end
     end
 
     def retract(fact, silent = false)
-      @facts = [] if @facts.nil?
-      if @facts.delete(fact)
-        log "retract: #{fact.inspect}"
-        process() if !silent
-      else
-        #puts "fact #{fact.inspect} not found"
+      @mutex.synchronize do
+        retract_nonblocking(fact, silent)
       end
     end
 
     def replace(pattern, values)
-      log "replace #{pattern.inspect} for #{values.inspect}"
+      @mutex.synchronize do
+        log "replace #{pattern.inspect} for #{values.inspect}"
 
-      data = match(pattern)
-      data.each do |match_data|
-        old_fact = pattern.clone
-        new_fact = pattern.clone
-        pattern.each_with_index do |item,i|
-          if match_data.include? item
-            old_fact[i] = match_data[item]
-            new_fact[i] = values.is_a?(Hash) ? values[item] : values
+        data = match(pattern)
+        data.each do |match_data|
+          old_fact = pattern.clone
+          new_fact = pattern.clone
+          pattern.each_with_index do |item,i|
+            if match_data.include? item
+              old_fact[i] = match_data[item]
+              new_fact[i] = values.is_a?(Hash) ? values[item] : values
+            end
           end
-        end
 
-        retract(old_fact, true)
-        assert(new_fact)
+          retract_nonblocking(old_fact, true)
+          assert_nonblocking(new_fact)
+        end
       end
     end
 
@@ -99,8 +94,13 @@ module RuleEngine
       res
     end
 
-    def tick()
-      @queue.run_queued_rules()
+    def start()
+      @worker_thread = Thread.new do
+        while true do
+          @queue.run_queued_rules()
+          sleep 0.1
+        end
+      end
     end
 
     def execute()
@@ -113,6 +113,28 @@ module RuleEngine
 
     def self.current_ruleset()
       return @@loaded_rules[self.name] ||= []
+    end
+
+    def assert_nonblocking(fact, silent = false)
+      return if @facts.include? fact
+
+      time = DateTime.now
+      log "assert: %s" % fact.inspect
+
+      @facts << fact
+      @fact_times[fact] = time
+
+      process() if !silent
+    end
+
+    def retract_nonblocking(fact, silent = false)
+      if @facts.delete(fact)
+        @fact_times.delete(fact)
+        log "retract: #{fact.inspect}"
+        process() if !silent
+      else
+        #puts "fact #{fact.inspect} not found"
+      end
     end
 
     def matches?(rule)
@@ -258,7 +280,6 @@ module RuleEngine
     end
 
     def execute_rule(rule, params)
-      debug "Enqueueing rule '#{rule.name}'"
       @queue.enqueue(rule, params)
     end
 

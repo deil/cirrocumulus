@@ -1,4 +1,6 @@
-class Agent
+require 'thread'
+
+module Agent
   class AgentInfo
     attr_accessor :identifier
     attr_accessor :default_ontology
@@ -135,48 +137,106 @@ class Agent
     end
   end
 
-  attr_reader :default_ontology
-  attr_reader :identifier
-  attr_reader :network_map
-  
-  def initialize(cm)
-    @cm = cm
-    @identifier = cm.jid
-    @sagas = []
-    @saga_idx = 0
-    @network_map = NetworkMap.new(self)
-  end
+  class Base
+    attr_reader :identifier
+    attr_reader :network_map
 
-  def tick()
-    @network_map.tick(@cm)
+    def initialize(cm)
+      Log4r::Logger['agent'].info('Initializing new agent')
 
-    @sagas.each do |saga|
-      next if saga.is_finished?
-      saga.timeout -= 1 if saga.timeout > 0
-      saga.handle(nil) if saga.timeout == 0
+      @cm = cm
+      @identifier = cm.jid
+      @ontologies = []
+      @message_queues = {}
+      @worker_threads = {}
+      #@network_map = NetworkMap.new(self)
     end
-  end
-  
-  def restore_state()
-  end
 
-  def handles_ontology?(ontology)
-    return @default_ontology == ontology || ontology == 'cirrocumulus-map'
-  end
-
-  def handle_message(message, kb)
-    @network_map.handle_message(message, @cm)
-
-    if message.ontology != 'cirrocumulus-map'
-      handle(message, kb)
+    # Loads ontologies into agent
+    def load_ontologies(ontologies_list)
+      ontologies_list.each do |ontology_name|
+        ontology = eval("#{ontology_name}.new(self)")
+        @ontologies << ontology
+        @message_queues[ontology] = Queue.new
+      end
     end
-  end
-  
-  def self.get_node(sender)
-    sender.split('-').first
-  end
-  
-  def self.get_subsystem(sender)
-    sender.split('-').second
+
+    def default_ontology
+      self.ontologies.size == 1 ? self.ontologies.first.name : nil
+    end
+
+    # Returns true if this agents supports requested ontology
+    def handles_ontology?(ontology_name)
+      self.ontologies.any? {|ontology| ontology.name == ontology_name}
+    end
+
+    # Asks each loaded ontology to restore its state
+    def restore_state()
+      Log4r::Logger['agent'].info 'Restoring previous state..'
+
+      threads = []
+      self.ontologies.each do |ontology|
+        threads << Thread.new do
+          begin
+            ontology.restore_state()
+          rescue Exception => e
+            Log4r::Logger['agent'].warn "failed to restore state for ontology %s" % ontology.name
+            Log4r::Logger['agent'].warn "%s: %s" % [e.to_s, e.backtrace.to_s]
+          end
+        end
+      end
+
+      threads.each {|thrd| thrd.join}
+      Log4r::Logger['agent'].info 'State restored successfully!'
+    end
+
+    # Starts message processing threads
+    def start()
+      start_workers()
+    end
+
+    def send_message(message)
+      @cm.send_message(message)
+    end
+
+    def handle_message(message)
+      #@network_map.handle_message(message, @cm)
+
+      self.ontologies.each {|ontology|
+        if message.ontology == ontology.name || ontology.sagas.any? {|saga| saga.id == message.in_reply_to}
+          @message_queues[ontology] << message
+          break
+        end
+      }
+    end
+
+    protected
+
+    attr_reader :cm
+    attr_reader :ontologies
+
+    def start_workers()
+      self.ontologies.each do |ontology|
+        @worker_threads[ontology] = Thread.new do
+          Log4r::Logger['agent'].info "Starting worker for ontology %s" % [ontology.name]
+          process_ontology(ontology, @message_queues[ontology])
+        end
+      end
+    end
+
+    def process_ontology(ontology, queue)
+      while true do
+        message = queue.pop(true) rescue nil
+        begin
+          ontology.handle_incoming_message(message, nil) if message
+        rescue Exception => e
+          Log4r::Logger['agent'].warn "failed to handle incoming message for ontology %s: %s" % [ontology.name, e.to_s]
+          Log4r::Logger['agent'].warn e.backtrace.to_s
+        end
+
+        ontology.tick()
+        sleep 0.5
+      end
+    end
   end
 end
