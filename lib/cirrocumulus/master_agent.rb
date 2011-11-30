@@ -169,7 +169,7 @@ module Agent
           ontology.restore_state()
         rescue Exception => e
           Log4r::Logger['agent'].warn "failed to restore state for ontology %s" % ontology.name
-          Log4r::Logger['agent'].warn e.backtrace.to_s
+          Log4r::Logger['agent'].warn "%s: %s" % [e.to_s, e.backtrace.to_s]
         end
       end
     end
