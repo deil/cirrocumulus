@@ -19,8 +19,12 @@ module Ontology
     def tick()
       @sagas.each do |saga|
         next if saga.is_finished?
-        saga.timeout -= 1 if saga.timeout > 0
-        saga.handle(nil) if saga.timeout == 0
+        begin
+          saga.timeout -= 1 if saga.timeout > 0
+          saga.handle(nil) if saga.timeout == 0
+        rescue Exception => e
+          Log4r::Logger['agent'].warn "Got exception while ticking saga: %s\n%s" % [e.to_s, e.backtrace.to_s]
+        end
       end
 
       handle_tick()
