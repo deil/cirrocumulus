@@ -1,0 +1,5 @@
+config/*
+ontologies/*
+standalone/*
+agent.rb
+*.log

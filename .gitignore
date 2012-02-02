@@ -1,5 +1,6 @@
 # rcov generated
 coverage
+coverage.data
 
 # rdoc generated
 rdoc
@@ -46,10 +47,3 @@ pkg
 
 # For rubinius:
 #*.rbc
-
-# development and config files
-.idea
-
-lib/test.rb
-lib/test2.rb
-Gemfile.lock

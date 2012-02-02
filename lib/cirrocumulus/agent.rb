@@ -1,4 +1,6 @@
 require 'thread'
+require 'systemu'
+require_relative 'jabber_bus'
 
 module Agent
   class AgentInfo
@@ -138,18 +140,32 @@ module Agent
   end
 
   class Base
-    attr_reader :identifier
+    attr_reader :identifier # identifier of running agent
     attr_reader :network_map
 
-    def initialize(cm)
-      Log4r::Logger['agent'].info('Initializing new agent')
+    def initialize(suffix = 'master')
+      Log4r::Logger['agent'].info('Hello world!')
 
-      @cm = cm
-      @identifier = cm.jid
       @ontologies = []
       @message_queues = {}
       @worker_threads = {}
       #@network_map = NetworkMap.new(self)
+
+      @suffix = suffix
+      @identifier = nil
+      @bus = nil
+      @incoming_queue = Queue.new
+    end
+
+    # Gets current platform (linux, freebsd, etc)
+    def platform
+      if RUBY_PLATFORM =~ /freebsd/
+        return 'freebsd'
+      elsif RUBY_PLATFORM =~ /linux/
+        return 'linux'
+      end
+
+      return 'unknown'
     end
 
     # Loads ontologies into agent
@@ -190,52 +206,75 @@ module Agent
       Log4r::Logger['agent'].info 'State restored successfully!'
     end
 
-    # Starts message processing threads
-    def start()
-      start_workers()
-    end
-
+    # Sends ACL message to bus
     def send_message(message)
-      @cm.send_message(message)
+      @bus.send_message(message)
     end
 
-    def handle_message(message)
-      #@network_map.handle_message(message, @cm)
+    # Start the agent!
+    def start()
+      suffix = default_ontology ? default_ontology.gsub('cirrocumulus-', '') : @suffix
+      _, hostname = systemu('hostname')
+      hostname.strip!
+      @identifier = '%s-%s' % [hostname, suffix]
 
-      self.ontologies.each {|ontology|
-        if message.ontology == ontology.name || ontology.sagas.any? {|saga| saga.id == message.in_reply_to}
-          @message_queues[ontology] << message
-          break
-        end
-      }
+      @bus = JabberBus.new(@identifier)
+      @bus.start(self)
+
+      start_workers
+      restore_state
+      main_loop
+    end
+
+    def process_incoming_message(message)
+      @incoming_queue << message
     end
 
     protected
 
-    attr_reader :cm
     attr_reader :ontologies
 
     def start_workers()
       self.ontologies.each do |ontology|
         @worker_threads[ontology] = Thread.new do
-          Log4r::Logger['agent'].info "Starting worker for ontology %s" % [ontology.name]
-          process_ontology(ontology, @message_queues[ontology])
+          Log4r::Logger['agent'].info 'Starting worker for ontology %s' % [ontology.name]
+          ontology_loop(ontology, @message_queues[ontology])
         end
       end
     end
 
-    def process_ontology(ontology, queue)
+    def ontology_loop(ontology, queue)
       while true do
         message = queue.pop(true) rescue nil
-        begin
-          ontology.handle_incoming_message(message, nil) if message
-        rescue Exception => e
-          Log4r::Logger['agent'].warn "failed to handle incoming message for ontology %s: %s" % [ontology.name, e.to_s]
-          Log4r::Logger['agent'].warn e.backtrace.to_s
-        end
 
-        ontology.tick()
-        sleep 0.5
+        if message
+          begin
+            ontology.handle_incoming_message(message, nil)
+          rescue Exception => e
+            Log4r::Logger['agent'].warn "failed to handle incoming message for ontology %s: %s" % [ontology.name, e.to_s]
+            Log4r::Logger['agent'].warn e.backtrace.to_s
+          end
+        else
+          ontology.tick()
+          sleep 0.5
+        end
+      end
+    end
+
+    def main_loop
+      while true
+        message = @incoming_queue.pop(true) rescue nil
+
+        if message
+          ontologies.each do |ontology|
+            if message.ontology == ontology.name || ontology.sagas.any? {|saga| saga.id == message.in_reply_to || saga.id == message.conversation_id}
+              @message_queues[ontology] << message
+              break
+            end
+          end
+        else
+          sleep 0.5
+        end
       end
     end
   end

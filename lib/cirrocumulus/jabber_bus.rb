@@ -80,7 +80,7 @@ class JabberBus
 
             while true do
               message = @send_queue.pop(true) rescue nil
-              break unless message
+              break if message.nil?
 
               send_message_actual(message)
             end
@@ -117,21 +117,23 @@ class JabberBus
     message_content = message.content if message.content.is_a?(String)
     message_content = Sexpistol.new.to_sexp(message.content) if message.content.is_a?(Array)
 
-    text = '<fipa-message ontology="%a"' % message.ontology
+    text = '<fipa-message ontology="%s"' % message.ontology
     text += ' receiver="%s"' % message.receiver if message.receiver
     text += ' act="%s"' % message.act
     text += ' reply-with="%s"' % message.reply_with if message.reply_with
     text += ' in-reply-to="%s"' % message.in_reply_to if message.in_reply_to
     text += ' conversation-id="%s"' % message.conversation_id if message.conversation_id
     text += '><content>%s</content></fipa-message>' % message_content
-    jabber.send!('<message type="groupchat" to="%s" id="%s"><body>%s</body></message>' % [
+    @jabber.send!('<message type="groupchat" to="%s" id="%s"><body>%s</body></message>' % [
         JABBER_CONFERENCE,
         Guid.new.to_s.gsub('-', ''),
         text.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;').gsub('"', '&quot;')
     ])
 
     true
-  rescue
+  rescue Exception => ex
+    puts ex.to_s
+    puts ex.backtrace.to_s
     false
   end
 
