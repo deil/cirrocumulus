@@ -1,6 +1,8 @@
 require 'thread'
 
 module RuleEngine
+  # Rule representation.
+  # After processing a ruleset, all rules are wrapped with this object.
   class RuleDescription
     attr_reader :name
     attr_reader :conditions
@@ -13,10 +15,12 @@ module RuleEngine
       @options = options
       @code = code
     end
-
   end
 
+  # Core class for Cirrocumulus Rule Engine.
+  # All the magic about asserting/retracting facts and pattern-matching is performed here.
   class Base
+    # DSL-method for defining rules.
     def self.rule(name, facts, options = {}, &block)
       current_ruleset << RuleDescription.new(name, facts, options, block)
     end
@@ -47,22 +51,23 @@ module RuleEngine
       log "Empty ruleset" if self.class.current_ruleset.empty?
     end
 
+    # Asserts new fact. If 'silent' is set to true, does not perform any associated rules
     def assert(fact, silent = false)
       @mutex.synchronize do
         assert_nonblocking(fact, silent)
       end
     end
 
+    # Retracts an existing fact. If 'silent' is set to true, does not perform any associated rules
     def retract(fact, silent = false)
       @mutex.synchronize do
         retract_nonblocking(fact, silent)
       end
     end
 
+    # Replaces fact value
     def replace(pattern, values)
       @mutex.synchronize do
-        log "replace #{pattern.inspect} for #{values.inspect}"
-
         data = match(pattern)
         data.each do |match_data|
           old_fact = pattern.clone
@@ -74,8 +79,18 @@ module RuleEngine
             end
           end
 
-          retract_nonblocking(old_fact, true)
-          assert_nonblocking(new_fact)
+          facts_are_same = true
+          old_fact.each_with_index do |item, idx|
+            new_item = new_fact[idx]
+            facts_are_same = false if new_item != item
+          end
+
+          unless facts_are_same
+            log "replace #{pattern.inspect} for #{values.inspect}"
+
+            retract_nonblocking(old_fact, true)
+            assert_nonblocking(new_fact)
+          end
         end
       end
     end
@@ -94,6 +109,7 @@ module RuleEngine
       res
     end
 
+    # Starts this rule engine instance.
     def start()
       @worker_thread = Thread.new do
         while true do
@@ -103,6 +119,7 @@ module RuleEngine
       end
     end
 
+    # Executes all associated with current KB rules. Normally, this shouldn't be called by the programmer.
     def execute()
       process()
     end
