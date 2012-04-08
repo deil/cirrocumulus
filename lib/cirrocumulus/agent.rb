@@ -206,9 +206,18 @@ module Agent
       Log4r::Logger['agent'].info 'State restored successfully!'
     end
 
-    # Sends ACL message to bus
+    # Just sends an ACL message to bus
     def send_message(message)
       @bus.send_message(message)
+    end
+
+    # Replies to specified message.
+    # Sends a reply to bus in reply to original message using sender, reply_with and conversation_in
+    def reply_to_message(reply, message)
+      reply.receiver = message.sender
+      reply.in_reply_to = message.reply_with
+      reply.conversation_id = message.conversation_id
+      @bus.send_message(reply)
     end
 
     # Start the agent!

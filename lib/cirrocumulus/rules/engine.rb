@@ -52,6 +52,9 @@ module RuleEngine
     end
 
     # Asserts new fact. If 'silent' is set to true, does not perform any associated rules
+    #
+    # * *Returns* :
+    #   - nothing
     def assert(fact, silent = false)
       @mutex.synchronize do
         assert_nonblocking(fact, silent)
@@ -59,6 +62,9 @@ module RuleEngine
     end
 
     # Retracts an existing fact. If 'silent' is set to true, does not perform any associated rules
+    #
+    # * *Returns* :
+    #   - nothing
     def retract(fact, silent = false)
       @mutex.synchronize do
         retract_nonblocking(fact, silent)
@@ -66,6 +72,9 @@ module RuleEngine
     end
 
     # Replaces fact value
+    #
+    # * *Returns* :
+    #   - nothing
     def replace(pattern, values)
       @mutex.synchronize do
         data = match(pattern)
