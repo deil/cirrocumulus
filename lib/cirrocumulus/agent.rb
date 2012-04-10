@@ -265,7 +265,7 @@ module Agent
           end
         else
           ontology.tick()
-          sleep 0.5
+          sleep 0.2
         end
       end
     end
@@ -275,14 +275,16 @@ module Agent
         message = @incoming_queue.pop(true) rescue nil
 
         if message
+          next if (message.sender == self.identifier) && !(message.receiver == self.identifier)
+
           ontologies.each do |ontology|
-            if message.ontology == ontology.name || ontology.sagas.any? {|saga| saga.id == message.in_reply_to || saga.id == message.conversation_id}
+            if message.ontology == ontology.name || ontology.sagas.any? {|saga| [message.in_reply_to, message.conversation_id].include?(saga.id) }
               @message_queues[ontology] << message
               break
             end
           end
-        else
-          sleep 0.5
+        else # sleep if no messages available
+          sleep 0.2
         end
       end
     end

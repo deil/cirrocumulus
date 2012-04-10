@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e3b220a8-b188-4d05-b90e-58a7fdef7470" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cirrocumulus/agent.rb" afterPath="$PROJECT_DIR$/lib/cirrocumulus/agent.rb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cirrocumulus/rules/engine.rb" afterPath="$PROJECT_DIR$/lib/cirrocumulus/rules/engine.rb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cirrocumulus/ontology.rb" afterPath="$PROJECT_DIR$/lib/cirrocumulus/ontology.rb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cirrocumulus/saga.rb" afterPath="$PROJECT_DIR$/lib/cirrocumulus/saga.rb" />
     </list>
     <ignored path="cirrocumulus.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -25,53 +27,28 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="engine.rb" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/rules/engine.rb">
+      <file leaf-file-name="saga.rb" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/saga.rb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="57" column="0" selection-start="1475" selection-end="1475" vertical-scroll-proportion="0.0">
+            <state line="37" column="0" selection-start="677" selection-end="677" vertical-scroll-proportion="0.48613375">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ontology.rb" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/ontology.rb">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="25" column="50" selection-start="536" selection-end="536" vertical-scroll-proportion="0.0">
               <folding>
-                <element signature="e#259#408#0" expanded="false" />
-                <element signature="e#742#864#0" expanded="false" />
-                <element signature="e#870#1093#0" expanded="false" />
-                <element signature="e#1099#1339#0" expanded="false" />
-                <element signature="e#2795#2885#0" expanded="false" />
-                <element signature="e#2891#3047#0" expanded="false" />
-                <element signature="e#3093#3249#0" expanded="false" />
-                <element signature="e#3362#3399#0" expanded="false" />
-                <element signature="e#3531#3766#0" expanded="false" />
-                <element signature="e#3772#4023#0" expanded="false" />
-                <element signature="e#4029#4462#0" expanded="false" />
-                <element signature="e#4468#5068#0" expanded="false" />
-                <element signature="e#5074#5480#0" expanded="false" />
-                <element signature="e#5486#6058#0" expanded="false" />
-                <element signature="e#6064#6389#0" expanded="false" />
-                <element signature="e#6395#6707#0" expanded="false" />
-                <element signature="e#6713#7055#0" expanded="false" />
-                <element signature="e#7061#7917#0" expanded="false" />
-                <element signature="e#7923#7996#0" expanded="false" />
-                <element signature="e#8002#8220#0" expanded="false" />
-                <element signature="e#8226#8322#0" expanded="false" />
-                <element signature="e#8328#8428#0" expanded="false" />
-                <element signature="e#8434#8553#0" expanded="false" />
+                <element signature="e#102#215#0" expanded="false" />
+                <element signature="e#279#364#0" expanded="false" />
+                <element signature="e#734#1086#0" expanded="false" />
+                <element signature="e#1107#1132#0" expanded="false" />
+                <element signature="e#1138#1236#0" expanded="false" />
+                <element signature="e#1242#1404#0" expanded="false" />
+                <element signature="e#1410#1457#0" expanded="false" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="agent.rb" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/agent.rb">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="214" column="70" selection-start="6548" selection-end="6548" vertical-scroll-proportion="0.62666667">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="message.rb" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/message.rb">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="4" column="4" selection-start="125" selection-end="125" vertical-scroll-proportion="0.0">
-              <folding />
             </state>
           </provider>
         </entry>
@@ -89,12 +66,10 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/lib/cirrocumulus/saga.rb" />
         <option value="$PROJECT_DIR$/lib/cirrocumulus/master_agent.rb" />
         <option value="$PROJECT_DIR$/lib/cirrocumulus/rule_engine.rb" />
         <option value="$PROJECT_DIR$/lib/test.rb" />
         <option value="$PROJECT_DIR$/lib/cirrocumulus/rules/run_queue.rb" />
-        <option value="$PROJECT_DIR$/lib/cirrocumulus/ontology.rb" />
         <option value="$PROJECT_DIR$/lib/cirrocumulus/engine.rb" />
         <option value="$PROJECT_DIR$/lib/cirrocumulus/agent_wrapper.rb" />
         <option value="$PROJECT_DIR$/lib/cirrocumulus/message.rb" />
@@ -105,6 +80,8 @@
         <option value="$PROJECT_DIR$/lib/cirrocumulus/jabber_bus.rb" />
         <option value="$PROJECT_DIR$/lib/cirrocumulus/rules/engine.rb" />
         <option value="$PROJECT_DIR$/lib/cirrocumulus/agent.rb" />
+        <option value="$PROJECT_DIR$/lib/cirrocumulus/ontology.rb" />
+        <option value="$PROJECT_DIR$/lib/cirrocumulus/saga.rb" />
       </list>
     </option>
   </component>
@@ -425,7 +402,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="1280" height="762" extended-state="6" />
+    <frame x="0" y="0" width="1280" height="762" extended-state="4" />
     <editor active="true" />
     <layout>
       <window_info id="Data Sources" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -502,19 +479,9 @@
     <breakpoint-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/lib/test.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="40" column="1" selection-start="1269" selection-end="1269" vertical-scroll-proportion="0.19303797" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/rules/run_queue.rb">
       <provider selected="true" editor-type-id="text-editor">
         <state line="85" column="0" selection-start="2221" selection-end="2221" vertical-scroll-proportion="0.29725364" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/ontology.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$APPLICATION_HOME_DIR$/rubystubs18/kernel.rb">
@@ -547,11 +514,6 @@
         <state line="13" column="0" selection-start="302" selection-end="302" vertical-scroll-proportion="0.02377179" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/jabber_bus.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="119" column="38" selection-start="3558" selection-end="3558" vertical-scroll-proportion="0.3446602" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib/cirrocumulus.rb">
       <provider selected="true" editor-type-id="text-editor">
         <state line="2" column="0" selection-start="55" selection-end="55" vertical-scroll-proportion="0.04754358" />
@@ -560,6 +522,20 @@
     <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/rule_engine.rb">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/message.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="4" column="4" selection-start="125" selection-end="125" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/rvm/rubies/ruby-1.9.3-p0/lib/ruby/1.9.1/thread.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="182" column="6" selection-start="3565" selection-end="3565" vertical-scroll-proportion="0.33278957">
+          <folding />
+        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/rules/engine.rb">
@@ -593,16 +569,52 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/message.rb">
+    <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/agent.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="4" column="4" selection-start="125" selection-end="125" vertical-scroll-proportion="0.0">
-          <folding />
+        <state line="266" column="21" selection-start="8047" selection-end="8047" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="e#4587#4898#0" expanded="false" />
+            <element signature="e#4954#5129#0" expanded="false" />
+            <element signature="e#5169#5401#0" expanded="false" />
+            <element signature="e#5570#5685#0" expanded="false" />
+            <element signature="e#5744#6329#0" expanded="false" />
+            <element signature="e#6374#6440#0" expanded="false" />
+            <element signature="e#6583#6795#0" expanded="false" />
+            <element signature="e#6824#7162#0" expanded="false" />
+            <element signature="e#7168#7246#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/agent.rb">
+    <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/jabber_bus.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="214" column="70" selection-start="6548" selection-end="6548" vertical-scroll-proportion="0.62666667">
+        <state line="115" column="34" selection-start="3354" selection-end="3354" vertical-scroll-proportion="1.375">
+          <folding>
+            <element signature="e#2941#2999#0" expanded="false" />
+            <element signature="e#3014#3318#0" expanded="false" />
+            <element signature="e#3322#4341#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/ontology.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="25" column="50" selection-start="536" selection-end="536" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="e#102#215#0" expanded="false" />
+            <element signature="e#279#364#0" expanded="false" />
+            <element signature="e#734#1086#0" expanded="false" />
+            <element signature="e#1107#1132#0" expanded="false" />
+            <element signature="e#1138#1236#0" expanded="false" />
+            <element signature="e#1242#1404#0" expanded="false" />
+            <element signature="e#1410#1457#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/saga.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="37" column="0" selection-start="677" selection-end="677" vertical-scroll-proportion="0.48613375">
           <folding />
         </state>
       </provider>

@@ -2,7 +2,6 @@ class Saga
   attr_reader :id
   attr_reader :context
   attr_reader :finished
-  attr_accessor :timeout
 
   DEFAULT_TIMEOUT = 15
   LONG_TIMEOUT = 60
@@ -15,7 +14,7 @@ class Saga
     @id = id
     @ontology = ontology
     @finished = false
-    @timeout = -1
+    @timeout_at = -1
     @state = STATE_START
   end
 
@@ -23,15 +22,19 @@ class Saga
     @finished || @state == STATE_ERROR
   end
 
+  def timed_out?(time)
+    @timeout_at > 0 && @timeout_at <= time
+  end
+
   protected
 
   def clear_timeout()
-    @timeout = -1
+    @timeout_at = -1
   end
 
   def set_timeout(secs)
     Log4r::Logger['agent'].debug "[#{id}] waiting for #{secs} second(s)" if secs > 1
-    @timeout = secs*2
+    @timeout_at = Time.now.to_i + secs
   end
   
   def change_state(new_state)
