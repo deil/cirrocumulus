@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Anton Kosyakin"]
-  s.date = "2012-02-02"
+  s.date = "2012-04-10"
   s.description = "Engine for building your own agents, providing you base functionality for loading ontologies, communicating with other agents and parsing FIPA-ACL messages"
   s.email = "deil@mneko.net"
   s.extra_rdoc_files = [
@@ -18,12 +18,23 @@ Gem::Specification.new do |s|
   ]
   s.files = [
     ".document",
+    ".idea/.name",
+    ".idea/.rakeTasks",
+    ".idea/cirrocumulus.iml",
+    ".idea/encodings.xml",
+    ".idea/misc.xml",
+    ".idea/modules.xml",
+    ".idea/scopes/scope_settings.xml",
+    ".idea/vcs.xml",
+    ".idea/workspace.xml",
     "Gemfile",
+    "Gemfile.lock",
     "LICENSE.txt",
     "README.rdoc",
     "Rakefile",
     "VERSION",
     "cirrocumulus.gemspec",
+    "lib/.gitignore",
     "lib/cirrocumulus.rb",
     "lib/cirrocumulus/agent.rb",
     "lib/cirrocumulus/agent_wrapper.rb",
@@ -36,6 +47,8 @@ Gem::Specification.new do |s|
     "lib/cirrocumulus/rules/engine.rb",
     "lib/cirrocumulus/rules/run_queue.rb",
     "lib/cirrocumulus/saga.rb",
+    "lib/test.rb",
+    "lib/test2.rb",
     "test/helper.rb",
     "test/test_cirrocumulus.rb"
   ]
