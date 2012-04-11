@@ -275,6 +275,7 @@ module Agent
         message = @incoming_queue.pop(true) rescue nil
 
         if message
+          next if !message.receiver.blank? && message.receiver != self.identifier
           next if (message.sender == self.identifier) && !(message.receiver == self.identifier)
 
           ontologies.each do |ontology|

@@ -4,8 +4,6 @@
     <list default="true" id="e3b220a8-b188-4d05-b90e-58a7fdef7470" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cirrocumulus/agent.rb" afterPath="$PROJECT_DIR$/lib/cirrocumulus/agent.rb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cirrocumulus/ontology.rb" afterPath="$PROJECT_DIR$/lib/cirrocumulus/ontology.rb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cirrocumulus/saga.rb" afterPath="$PROJECT_DIR$/lib/cirrocumulus/saga.rb" />
     </list>
     <ignored path="cirrocumulus.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -27,10 +25,38 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="saga.rb" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="saga.rb" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/saga.rb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="37" column="0" selection-start="677" selection-end="677" vertical-scroll-proportion="0.48613375">
+            <state line="43" column="45" selection-start="837" selection-end="837" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="agent.rb" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/agent.rb">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="277" column="81" selection-start="8294" selection-end="8294" vertical-scroll-proportion="0.55518943">
+              <folding>
+                <element signature="e#4587#4898#0" expanded="false" />
+                <element signature="e#4954#5129#0" expanded="false" />
+                <element signature="e#5169#5401#0" expanded="false" />
+                <element signature="e#5570#5685#0" expanded="false" />
+                <element signature="e#5744#6329#0" expanded="false" />
+                <element signature="e#6374#6440#0" expanded="false" />
+                <element signature="e#6583#6795#0" expanded="false" />
+                <element signature="e#6824#7162#0" expanded="false" />
+                <element signature="e#7168#7246#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="agent_wrapper.rb" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/agent_wrapper.rb">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="13" column="0" selection-start="302" selection-end="302" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -43,9 +69,6 @@
               <folding>
                 <element signature="e#102#215#0" expanded="false" />
                 <element signature="e#279#364#0" expanded="false" />
-                <element signature="e#734#1086#0" expanded="false" />
-                <element signature="e#1107#1132#0" expanded="false" />
-                <element signature="e#1138#1236#0" expanded="false" />
                 <element signature="e#1242#1404#0" expanded="false" />
                 <element signature="e#1410#1457#0" expanded="false" />
               </folding>
@@ -79,15 +102,17 @@
         <option value="$PROJECT_DIR$/Gemfile" />
         <option value="$PROJECT_DIR$/lib/cirrocumulus/jabber_bus.rb" />
         <option value="$PROJECT_DIR$/lib/cirrocumulus/rules/engine.rb" />
-        <option value="$PROJECT_DIR$/lib/cirrocumulus/agent.rb" />
         <option value="$PROJECT_DIR$/lib/cirrocumulus/ontology.rb" />
         <option value="$PROJECT_DIR$/lib/cirrocumulus/saga.rb" />
+        <option value="$PROJECT_DIR$/lib/cirrocumulus/agent.rb" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="width" value="1280" />
-    <option name="height" value="762" />
+    <option name="x" value="-3" />
+    <option name="y" value="-3" />
+    <option name="width" value="1286" />
+    <option name="height" value="769" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -402,14 +427,14 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="1280" height="762" extended-state="4" />
+    <frame x="-3" y="-3" width="1286" height="769" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Data Sources" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="true" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3287879" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.67121214" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.28664497" sideWeight="0.67121214" order="3" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.28525123" sideWeight="0.67121214" order="3" side_tool="false" content_ui="combo" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
@@ -509,11 +534,6 @@
         <state line="28" column="0" selection-start="936" selection-end="936" vertical-scroll-proportion="0.6359223" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/agent_wrapper.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="13" column="0" selection-start="302" selection-end="302" vertical-scroll-proportion="0.02377179" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib/cirrocumulus.rb">
       <provider selected="true" editor-type-id="text-editor">
         <state line="2" column="0" selection-start="55" selection-end="55" vertical-scroll-proportion="0.04754358" />
@@ -569,23 +589,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/agent.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="266" column="21" selection-start="8047" selection-end="8047" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="e#4587#4898#0" expanded="false" />
-            <element signature="e#4954#5129#0" expanded="false" />
-            <element signature="e#5169#5401#0" expanded="false" />
-            <element signature="e#5570#5685#0" expanded="false" />
-            <element signature="e#5744#6329#0" expanded="false" />
-            <element signature="e#6374#6440#0" expanded="false" />
-            <element signature="e#6583#6795#0" expanded="false" />
-            <element signature="e#6824#7162#0" expanded="false" />
-            <element signature="e#7168#7246#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/jabber_bus.rb">
       <provider selected="true" editor-type-id="text-editor">
         <state line="115" column="34" selection-start="3354" selection-end="3354" vertical-scroll-proportion="1.375">
@@ -597,25 +600,46 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/saga.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="43" column="45" selection-start="837" selection-end="837" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/agent_wrapper.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="13" column="0" selection-start="302" selection-end="302" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/ontology.rb">
       <provider selected="true" editor-type-id="text-editor">
         <state line="25" column="50" selection-start="536" selection-end="536" vertical-scroll-proportion="0.0">
           <folding>
             <element signature="e#102#215#0" expanded="false" />
             <element signature="e#279#364#0" expanded="false" />
-            <element signature="e#734#1086#0" expanded="false" />
-            <element signature="e#1107#1132#0" expanded="false" />
-            <element signature="e#1138#1236#0" expanded="false" />
             <element signature="e#1242#1404#0" expanded="false" />
             <element signature="e#1410#1457#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/saga.rb">
+    <entry file="file://$PROJECT_DIR$/lib/cirrocumulus/agent.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="37" column="0" selection-start="677" selection-end="677" vertical-scroll-proportion="0.48613375">
-          <folding />
+        <state line="277" column="81" selection-start="8294" selection-end="8294" vertical-scroll-proportion="0.55518943">
+          <folding>
+            <element signature="e#4587#4898#0" expanded="false" />
+            <element signature="e#4954#5129#0" expanded="false" />
+            <element signature="e#5169#5401#0" expanded="false" />
+            <element signature="e#5570#5685#0" expanded="false" />
+            <element signature="e#5744#6329#0" expanded="false" />
+            <element signature="e#6374#6440#0" expanded="false" />
+            <element signature="e#6583#6795#0" expanded="false" />
+            <element signature="e#6824#7162#0" expanded="false" />
+            <element signature="e#7168#7246#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
