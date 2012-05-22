@@ -17,6 +17,34 @@ module RuleEngine
     end
   end
 
+  class Fact
+    def initialize(data, time, options)
+      @data = data
+      @time = time
+      @options = options
+    end
+
+    attr_reader :data
+    attr_accessor :is_deleted
+
+    def timed_out?
+      return false if @options[:expires] == nil
+      @time + @options[:expires] < Time.now
+    end
+  end
+
+  class MatchResult
+    def initialize(rule)
+      @rule = rule
+      @matched_facts = []
+      @parameters = nil
+    end
+
+    attr_reader :rule
+    attr_reader :matched_facts
+    attr_accessor :parameters
+  end
+
   # Core class for Cirrocumulus Rule Engine.
   # All the magic about asserting/retracting facts and pattern-matching is performed here.
   class Base
@@ -51,13 +79,20 @@ module RuleEngine
       log "Empty ruleset" if self.class.current_ruleset.empty?
     end
 
+    def transaction
+
+    end
+
     # Asserts new fact. If 'silent' is set to true, does not perform any associated rules
     #
     # * *Returns* :
     #   - nothing
-    def assert(fact, silent = false)
+    def assert(fact, options = {}, silent = false)
+      silent = options unless options.is_a?(Hash)
+      options = {} unless options.is_a?(Hash)
+
       @mutex.synchronize do
-        assert_nonblocking(fact, silent)
+        assert_nonblocking(fact, options, silent)
       end
     end
 
@@ -71,34 +106,47 @@ module RuleEngine
       end
     end
 
-    # Replaces fact value
+    # Replaces fact value. If fact was not found - asserts it
     #
     # * *Returns* :
     #   - nothing
-    def replace(pattern, values)
+    def replace(pattern, values, options = {})
       @mutex.synchronize do
         data = match(pattern)
-        data.each do |match_data|
-          old_fact = pattern.clone
+
+        if data.empty?
           new_fact = pattern.clone
+
           pattern.each_with_index do |item,i|
-            if match_data.include? item
-              old_fact[i] = match_data[item]
+            if item.is_a?(Symbol) && item.to_s.upcase == item.to_s
               new_fact[i] = values.is_a?(Hash) ? values[item] : values
             end
           end
 
-          facts_are_same = true
-          old_fact.each_with_index do |item, idx|
-            new_item = new_fact[idx]
-            facts_are_same = false if new_item != item
-          end
+          assert_nonblocking(new_fact, options, false)
+        else
+          data.each do |match_data|
+            old_fact = pattern.clone
+            new_fact = pattern.clone
+            pattern.each_with_index do |item,i|
+              if match_data.include? item
+                old_fact[i] = match_data[item]
+                new_fact[i] = values.is_a?(Hash) ? values[item] : values
+              end
+            end
 
-          unless facts_are_same
-            log "replace #{pattern.inspect} for #{values.inspect}"
+            facts_are_same = true
+            old_fact.each_with_index do |item, idx|
+              new_item = new_fact[idx]
+              facts_are_same = false if new_item != item
+            end
 
-            retract_nonblocking(old_fact, true)
-            assert_nonblocking(new_fact)
+            unless facts_are_same
+              debug "replace #{pattern.inspect} for #{values.inspect}"
+
+              retract_nonblocking(old_fact, true)
+              assert_nonblocking(new_fact, {}, false)
+            end
           end
         end
       end
@@ -111,8 +159,8 @@ module RuleEngine
 
     def match(pattern)
       res = []
-      match_pattern(pattern).each do |fact|
-        res << bind_parameters(pattern, fact, {})
+      find_matches_for_condition(pattern).each do |fact|
+        res << bind_parameters(pattern, fact.data, {})
       end
 
       res
@@ -121,11 +169,25 @@ module RuleEngine
     # Starts this rule engine instance.
     def start()
       @worker_thread = Thread.new do
+        engine = nil
         while true do
+          engine = Thread.current[:engine] if engine.nil?
+          engine.tick() if engine
           @queue.run_queued_rules()
           sleep 0.1
         end
       end
+
+      @worker_thread[:engine] = self
+    end
+
+    def tick()
+      to_retract = []
+      @facts.each {|fact| to_retract << fact if fact.timed_out? }
+      to_retract.each {|fact| retract(fact.data, true) }
+      process() unless to_retract.empty?
+    rescue Exception => ex
+      p ex
     end
 
     # Executes all associated with current KB rules. Normally, this shouldn't be called by the programmer.
@@ -141,26 +203,36 @@ module RuleEngine
       return @@loaded_rules[self.name] ||= []
     end
 
-    def assert_nonblocking(fact, silent = false)
-      return if @facts.include? fact
+    def assert_nonblocking(fact, options, silent)
+      return if @facts.any? {|f| f.data == fact}
 
-      time = DateTime.now
-      log "assert: %s" % fact.inspect
-
-      @facts << fact
-      @fact_times[fact] = time
+      if !options.empty?
+        debug "assert: %s (%s)" % [fact.inspect, options.inspect]
+      else
+        debug "assert: %s" % fact.inspect
+      end
+      @facts << Fact.new(fact, DateTime.now, options)
 
       process() if !silent
     end
 
     def retract_nonblocking(fact, silent = false)
-      if @facts.delete(fact)
-        @fact_times.delete(fact)
-        log "retract: #{fact.inspect}"
-        process() if !silent
-      else
-        #puts "fact #{fact.inspect} not found"
+      @facts.each_with_index do |item, idx|
+        next if item.data != fact
+        @facts.delete_at(idx)
+
+        if item.timed_out?
+          debug "retract: #{item.data.inspect} (timeout)"
+        else
+          debug "retract: #{item.data.inspect}"
+        end
+
+        item.is_deleted = true # TODO: should force GC for this object or smth like that
+
+        break
       end
+
+      process() if !silent
     end
 
     def matches?(rule)
@@ -168,29 +240,28 @@ module RuleEngine
 
       pattern_candidates = []
       rule.conditions.each do |pattern|
-        pattern_candidates << match_pattern(pattern)
+        pattern_candidates << find_matches_for_condition(pattern)
       end
 
       return nil if !pattern_candidates.all? {|c| c.size > 0}
 
       trace "Result: rule '#{rule.name}' has candidates for each pattern"
-
-      match_parameters(rule, pattern_candidates)
+      intersect_matches_for_each_condition(rule, pattern_candidates)
     end
 
-    def match_pattern(pattern)
+    def find_matches_for_condition(pattern)
       trace "=> attempting to match pattern #{pattern.inspect}"
       fact_matches = true
       candidates = []
 
       @facts.each do |fact|
-        next if fact.size != pattern.size
+        next if fact.data.size != pattern.size
         fact_matches = true
 
         pattern.each_with_index do |el,i|
           if el.is_a?(Symbol) && el.to_s.upcase == el.to_s # parameter
           else
-            fact_matches = false if el != fact[i]
+            fact_matches = false if el != fact.data[i]
           end
         end
 
@@ -201,25 +272,28 @@ module RuleEngine
       candidates
     end
 
-    def match_parameters(rule, candidates)
+    def intersect_matches_for_each_condition(rule, candidates)
       trace "Attempting to match parameters:"
 
       result = []
       attempt = []
       while (attempt = generate_combination(rule, candidates, attempt)) != [] do
-        bindings = test_combination(rule, candidates, attempt)
+        bindings = test_condition_parameters_combination(rule, candidates, attempt)
         if bindings
           trace "Found: %s" % bindings.inspect
-          result << bindings
+          match_data = MatchResult.new(rule)
+          attempt.each_with_index {|a,i| match_data.matched_facts << candidates[i][a]}
+          match_data.parameters = bindings
+          result << match_data
         end
       end
 
       result
     end
 
-    def test_combination(rule, candidates, attempt)
+    def test_condition_parameters_combination(rule, candidates, attempt)
       facts = []
-      attempt.each_with_index {|a,i| facts << candidates[i][a]}
+      attempt.each_with_index {|a,i| facts << candidates[i][a].data}
       trace "=> testing combination #{attempt.inspect}: %s" % facts.inspect
 
       binded_params = {}
@@ -305,35 +379,35 @@ module RuleEngine
       binded_params
     end
 
-    def execute_rule(rule, params)
-      @queue.enqueue(rule, params)
+    def execute_rule(match_data)
+      @queue.enqueue(match_data)
     end
 
     def process()
       self.class.current_ruleset.each do |rule|
         binded_params = matches?(rule)
-        next if binded_params.nil?
-        binded_params.each {|params| execute_rule(rule, params)}
+        next if binded_params.blank?
+
+        binded_params.each {|params| execute_rule(params)}
       end
     end
 
     def log(msg)
       Log4r::Logger['kb'].info(msg)
     rescue
-      puts "[INFO] %s" % msg
+      puts "%s [INFO] %s" % [Time.now.to_s, msg]
     end
 
     def debug(msg)
       Log4r::Logger['kb'].debug(msg)
     rescue
-      puts "[DEBUG] %s" % msg
+      puts "%s [DEBUG] %s" % [Time.now.to_s, msg]
     end
 
     def trace(msg)
-      return
       Log4r::Logger['kb_trace'].debug(msg)
     rescue
-      puts "[TRACE] %s" % msg
+      puts "%s [TRACE] %s" % [Time.now.to_s, msg]
     end
   end
 

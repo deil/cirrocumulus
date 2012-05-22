@@ -2,14 +2,16 @@ require 'thread'
 
 module RuleEngine
   class QueueEntry
+    attr_reader :run_data
     attr_reader :rule
     attr_reader :params
     attr_reader :run_at
     attr_accessor :state
 
-    def initialize(rule, params, run_at = nil)
-      @rule = rule
-      @params = params
+    def initialize(run_data, run_at = nil)
+      @run_data = run_data
+      @rule = run_data.rule
+      @params = run_data.parameters
       @run_at = run_at
       @state = :queued
     end
@@ -23,18 +25,18 @@ module RuleEngine
       @mutex = Mutex.new
     end
 
-    def enqueue(rule, params)
+    def enqueue(match_data)
       @mutex.synchronize do
-        if !already_queued?(rule, params)
-          debug "Enqueueing rule #{rule.name}#{params.inspect}"
+        if !already_queued?(match_data.rule, match_data.parameters)
+          debug "Enqueueing rule #{match_data.rule.name}#{match_data.parameters.inspect}"
 
-          if !rule.options.blank? && rule.options.include?(:for)
-            delay = rule.options[:for]
+          if !match_data.rule.options.blank? && match_data.rule.options.include?(:for)
+            delay = match_data.rule.options[:for]
             run_at = Time.now + delay
             debug "Will run this rule after #{delay.to_s} sec (at #{run_at.strftime("%H:%M:%S %d.%m.%Y")})"
-            @queue << QueueEntry.new(rule, params, run_at)
+            @queue << QueueEntry.new(match_data, run_at)
           else
-            @queue << QueueEntry.new(rule, params)
+            @queue << QueueEntry.new(match_data)
           end
         end
       end
@@ -69,12 +71,17 @@ module RuleEngine
 
       while !rules_for_running.empty? do
         entry = rules_for_running.pop
-        begin
-          debug "Executing #{entry.rule.name}#{entry.params.inspect}"
-          entry.rule.code.call(@engine, entry.params)
-          entry.state = :finished # TODO: cleanup @queue from this entries
-        rescue Exception => e
-          Log4r::Logger['kb'].warn "Exception while executing rule: %s\n%s" % [e.to_s, e.backtrace.to_s]
+        if entry.run_data.matched_facts.all? {|fact| !fact.is_deleted} # TODO: there should be smth like WeakReference
+          begin
+            debug "Executing #{entry.rule.name}#{entry.params.inspect}"
+            entry.rule.code.call(@engine, entry.params)
+            entry.state = :finished # TODO: cleanup @queue from this entries
+
+          rescue Exception => e
+            Log4r::Logger['kb'].warn "Exception while executing rule: %s\n%s" % [e.to_s, e.backtrace.to_s]
+          end
+        else
+          entry.state = :finished
         end
       end
     end
