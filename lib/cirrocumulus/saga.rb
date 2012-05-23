@@ -46,7 +46,7 @@ class Saga
     clear_timeout()
     change_state(STATE_FINISHED)
     @finished = true
-    Log4r::Logger['agent'].info "[#{id}] finished"
+    Log4r::Logger['agent'].debug "[#{id}] finished"
   end
   
   def error()

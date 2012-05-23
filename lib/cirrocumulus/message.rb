@@ -16,7 +16,7 @@ module Cirrocumulus
     end
 
     def context
-      Context.new(@sender, @reply_with)
+      Context.new(self.sender, self.reply_with, self.conversation_id)
     end
 
     def self.parse_params(content, subroutine = false)
