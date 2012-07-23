@@ -3,7 +3,7 @@ class Saga
   attr_reader :context
   attr_reader :finished
 
-  DEFAULT_TIMEOUT = 15
+  DEFAULT_TIMEOUT = 30
   LONG_TIMEOUT = 60
   
   STATE_ERROR = -1

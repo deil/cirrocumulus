@@ -1,6 +1,6 @@
 source "http://rubygems.org"
 
-gem "activesupport", "~> 2.3.11"
+#gem "activesupport", "~> 2.3.11"
 gem "log4r", "~> 1.1.9"
 gem "systemu"
 gem "xmpp4r", "~> 0.5"

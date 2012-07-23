@@ -88,7 +88,7 @@ class JabberBus
             sleep 5 unless connect
           end
 
-          sleep 0.5
+          sleep 0.01
         rescue Exception => ex
           puts ex.to_s
           puts ex.backtrace.to_s
