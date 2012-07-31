@@ -64,6 +64,7 @@ module RuleEngine
               entry.state = :running
             end
 
+            idx += 1
             count -= 1
           end
         end
