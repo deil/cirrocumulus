@@ -182,10 +182,12 @@ module RuleEngine
     end
 
     def tick()
-      to_retract = []
-      @facts.each {|fact| to_retract << fact if fact.timed_out? }
-      to_retract.each {|fact| retract(fact.data, true) }
-      process() unless to_retract.empty?
+      @mutex.synchronize do
+        to_retract = []
+        @facts.each {|fact| to_retract << fact if fact.timed_out? }
+        to_retract.each {|fact| retract_nonblocking(fact.data, true) }
+        process() unless to_retract.empty?
+      end
     rescue Exception => ex
       p ex
     end
@@ -386,7 +388,7 @@ module RuleEngine
     def process()
       self.class.current_ruleset.each do |rule|
         binded_params = matches?(rule)
-        next if binded_params.blank?
+        next if binded_params.nil? || binded_params.empty?
 
         binded_params.each {|params| execute_rule(params)}
       end
