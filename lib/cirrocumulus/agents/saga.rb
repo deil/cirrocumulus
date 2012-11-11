@@ -1,3 +1,6 @@
+#
+# Saga. Implements long-term workflows.
+#
 class Saga
   attr_reader :id
   attr_reader :context

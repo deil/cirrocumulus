@@ -2,15 +2,14 @@ require 'xmpp4r'
 require 'xmpp4r-simple'
 require 'guid'
 require 'sexpistol'
+require_relative 'message_bus.rb'
 
 module Cirrocumulus
 	class JabberBus < MessageBus
 	  attr_reader :jid
 
-	  def initialize(jid)
-	    @jid = jid
+	  def initialize
 	    @send_queue = Queue.new
-
 	    Log4r::Logger['bus'].info 'will use Jabber for agent communications'
 	  end
 
@@ -18,7 +17,8 @@ module Cirrocumulus
 	    @jabber && @jabber.connected?
 	  end
 
-	  def connect
+	  def connect(identifier)
+		  @jid = identifier
 	    Log4r::Logger['bus'].info "logging to #{JABBER_SERVER} as #{jid}"
 
 	    begin

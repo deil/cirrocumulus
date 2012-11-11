@@ -22,7 +22,8 @@ Jeweler::Tasks.new do |gem|
   gem.email = "deil@mneko.net"
   gem.authors = ["Anton Kosyakin"]
   gem.required_ruby_version = '>= 1.9.2'
-  # dependencies defined in Gemfile
+  gem.files = Dir.glob('lib/**/*.rb')
+  #gem.files.exclude 'tmp'
 end
 Jeweler::RubygemsDotOrgTasks.new
 

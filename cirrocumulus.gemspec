@@ -17,24 +17,12 @@ Gem::Specification.new do |s|
     "README.rdoc"
   ]
   s.files = [
-    ".document",
-    ".idea/.name",
-    ".idea/.rakeTasks",
-    ".idea/cirrocumulus.iml",
-    ".idea/encodings.xml",
-    ".idea/misc.xml",
-    ".idea/modules.xml",
-    ".idea/scopes/scope_settings.xml",
-    ".idea/vcs.xml",
-    ".idea/workspace.xml",
     "Gemfile",
-    "Gemfile.lock",
     "LICENSE.txt",
     "README.rdoc",
     "Rakefile",
     "VERSION",
     "cirrocumulus.gemspec",
-    "lib/.gitignore",
     "lib/cirrocumulus.rb",
     "lib/cirrocumulus/agent.rb",
     "lib/cirrocumulus/agent_wrapper.rb",
@@ -47,12 +35,6 @@ Gem::Specification.new do |s|
     "lib/cirrocumulus/rules/engine.rb",
     "lib/cirrocumulus/rules/run_queue.rb",
     "lib/cirrocumulus/saga.rb",
-    "test/Gemfile",
-    "test/Gemfile.lock",
-    "test/helper.rb",
-    "test/test.rb",
-    "test/test2.rb",
-    "test/test_cirrocumulus.rb"
   ]
   s.homepage = "http://github.com/deil/cirrocumulus"
   s.licenses = ["GPL-2"]

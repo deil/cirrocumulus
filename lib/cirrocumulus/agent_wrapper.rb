@@ -9,8 +9,9 @@ end
 require 'yaml'
 require 'cirrocumulus'
 require 'cirrocumulus/logger'
-require 'cirrocumulus/ontology'
-require 'cirrocumulus/agent'
+require 'cirrocumulus/agents/ontology'
+require 'cirrocumulus/agents/agent'
+require 'cirrocumulus/agents/jabber_bus'
 
 class String
   def underscore
@@ -40,24 +41,13 @@ agent_config = YAML.load_file(ontologies_file_name)
 ontologies = agent_config['ontologies']
 ontologies.each do |ontology_name|
   puts "Will load ontology %s" % ontology_name
-  require File.join(AGENT_ROOT, 'ontologies', ontology_name.underscore)
+  require(File.join('./ontologies', ontology_name.underscore))
 end
-
-=begin
-kb_name = agent_config['kb']
-kb = if kb_name
-  puts "Will load knowledge base %s" % kb_name
-  require File.join(AGENT_ROOT, 'ontologies/xen/', kb_name.underscore) # TODO
-  eval("#{kb_name}.new()")
-else
-  Kb.new
-end
-=end
 
 begin
-  a = Agent::Base.new
+  a = Agent::Base.new('master', Cirrocumulus::JabberBus.new)
   a.load_ontologies(agent_config['ontologies'])
-  a.start
+  a.start()
 rescue Exception => e
   puts 'Got an error:'
   puts e

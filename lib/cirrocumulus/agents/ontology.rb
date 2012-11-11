@@ -1,5 +1,8 @@
-module Ontology
-  class Base
+#
+# Ontology. Here everything lives
+#
+module Cirrocumulus
+	class Ontology
     attr_reader :name
     attr_reader :agent
     attr_reader :sagas
