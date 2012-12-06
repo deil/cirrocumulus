@@ -50,3 +50,5 @@ pkg
 
 .idea
 test
+
+Gemfile.lock
