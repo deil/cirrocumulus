@@ -1,5 +1,5 @@
+require 'bundler/setup'
 require 'thread'
-require 'rubygems'
 require 'sexpistol'
 require_relative '../lib/cirrocumulus/identifier'
 require_relative '../lib/cirrocumulus/channels'
