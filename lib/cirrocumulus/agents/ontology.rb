@@ -62,6 +62,7 @@ module Cirrocumulus
       @saga_idx += 1
       saga = saga_class.new(saga_class.to_s + '-' + @saga_idx.to_s, self)
       @sagas << saga
+
       saga
     end
 

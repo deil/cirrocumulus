@@ -3,18 +3,50 @@ require 'rubygems'
 require 'sexpistol'
 require_relative '../lib/cirrocumulus/identifier'
 require_relative '../lib/cirrocumulus/channels'
+require_relative '../lib/cirrocumulus/network_channel'
 require_relative '../lib/cirrocumulus/facts'
 require_relative '../lib/cirrocumulus/ontology'
+
+class Saga1 < Saga
+  saga 'start_vds'
+
+  def start(arg)
+    @arg = arg
+
+    query(LocalIdentifier.new('xen'), [:free_memory])
+  end
+
+  def dump_parameters
+    "VDS=%s" % [@arg]
+  end
+
+  def handle_reply(sender, contents, options = {})
+    p sender
+    p contents
+
+    case @state
+      when STATE_START
+        puts "STATE_START"
+    end
+  end
+end
 
 class HypervisorOntology < Ontology
 	ontology 'xen'
 
-	rule 'test1', [] do |ontology, params|
-		puts "heh.."
-	end
+	rule 'test1', [ [:test] ] do |ontology, params|
+  end
 
-	def handle_request(sender, contents)
-		puts "%s | %s: %s" % [identifier.to_s, sender.to_s, Sexpistol.new.to_sexp(contents)]
+  def handle_query(sender, expression, options = {})
+    if expression == [:free_memory]
+      inform(sender, [[:free_memory], 1024], reply(options))
+    else
+      super(sender, expression, options)
+    end
+  end
+
+	def handle_request(sender, contents, options = {})
+		puts "%25s | %s requests %s" % [identifier.to_s, sender.to_s, Sexpistol.new.to_sexp(contents)]
 	end
 end
 
@@ -28,12 +60,12 @@ class NetworkMonitoringOntology < Ontology
 	end
 
 	rule 'host_is_down', [ [:HOST, :ping, 0] ] do |ontology, params|
-		puts "host_is_down: %s" % params[:HOST]
-		ontology.request LocalIdentifier.new('xen'), [:test]
+    saga = ontology.create_saga(Saga1)
+    saga.start('66ecb')
 	end
 
-	def handle_request(sender, contents)
-		puts "%s | %s: %s" % [identifier.to_s, sender.to_s, Sexpistol.new.to_sexp(contents)]
+	def handle_request(sender, contents, options = {})
+		puts "%25s | %s requests %s" % [identifier, sender, Sexpistol.new.to_sexp(contents)]
 	end
 end
 
@@ -50,7 +82,7 @@ agent.assert ['gw.mneko.net', :ping, 1]
 sleep 2
 agent.replace ['gw.mneko.net', :ping, :STATE], 0
 
-puts "Press any key.."
+puts "\nPress any key.."
 gets
 
 agent.join
