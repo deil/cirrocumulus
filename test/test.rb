@@ -1,85 +1,57 @@
-require 'bundler/setup'
-require 'active_support'
-require 'cirrocumulus/rule_engine'
+require 'thread'
+require 'rubygems'
+require 'sexpistol'
+require_relative '../lib/cirrocumulus/identifier'
+require_relative '../lib/cirrocumulus/channels'
+require_relative '../lib/cirrocumulus/facts'
+require_relative '../lib/cirrocumulus/ontology'
 
-class Test < RuleEngine::Base
-  rule 'convert', [[:temperature, :X, 'F']] do |engine, params|
-    puts "qqq"
-    x = params[:X].to_i
-    engine.retract([:temperature, x, 'F'])
-    y = 5*(x - 32)/9
-    engine.assert([:temperature, y, 'C'])
-  end
+class HypervisorOntology < Ontology
+	ontology 'xen'
 
-  rule 'test', [ [:a, :B, :c], [:c, :B, :a]], :for => 5.seconds do |engine, params|
-    p "test"
-    p params
-  end
-=begin
-  rule 'guest_powered_off', [[:guest, :X, :powered_off]], :for => 5.seconds do |engine, params|
-    puts "guest_powered_off"
-  end
-  
-  rule 'monitor_md', [[:virtual_disk, :X, :active], [:mdraid, :X, :failed]] do |engine, params|
-    # md devices is failed, but virtual disk should be up
-    p params
-    puts "virtual disk #{params[:X]} should be up, but corresponding md devices is failed!"
-  end
-=end
+	rule 'test1', [] do |ontology, params|
+		puts "heh.."
+	end
+
+	def handle_request(sender, contents)
+		puts "%s | %s: %s" % [identifier.to_s, sender.to_s, Sexpistol.new.to_sexp(contents)]
+	end
 end
 
-#RuleEngine::Server.run()
+class NetworkMonitoringOntology < Ontology
+	ontology 'network_monitor'
 
-e = Test.new
+	rule 'test', [ [:start] ] do |ontology, params|
+		puts "hello world"
+		ontology.query Agent.all('xen'), [:free_memory], :reply_with => '1'
+		ontology.request LocalIdentifier.new('xen'), [:greet], :reply_with => 'greeting_test'
+	end
 
-#e.assert [:i, :will, :expire, :soon], :expires => 10.seconds
-#e.replace [:guest, :X, :powered_off], "q1w2", :expires => 2.seconds
-e.assert [:a, 'b', :c]
-e.assert [:a, 'haha', :c], :expires => 3.seconds
-e.assert [:c, 'b', :a], :expires => 6.seconds
+	rule 'host_is_down', [ [:HOST, :ping, 0] ] do |ontology, params|
+		puts "host_is_down: %s" % params[:HOST]
+		ontology.request LocalIdentifier.new('xen'), [:test]
+	end
 
-e.start()
-
-while true
-  sleep 1
+	def handle_request(sender, contents)
+		puts "%s | %s: %s" % [identifier.to_s, sender.to_s, Sexpistol.new.to_sexp(contents)]
+	end
 end
 
-exit 0
+Ontology.enable_console()
 
-e.assert [:guest, "233bed174ab0802fd908f981d64d185b", :powered_off]
-e.assert [:guest, "233bed174ab0802fd908f981d64d185b", :running]
-e.assert [:guest, "233bed174ab0802fd908f981d64d185b", :state, :powered_on]
-e.replace [:guest, "233bed174ab0802fd908f981d64d185b", :state, :STATE], :powered_off
+agent = NetworkMonitoringOntology.new('network_monitor')
+agent.assert([:start])
+agent.run()
 
-p e.match [:guest, "233bed174ab0802fd908f981d64d185b", :running]
-#while true do
-  e.tick()
-#  sleep 1
-#end
+agent2 = HypervisorOntology.new('xen')
+agent2.run()
 
+agent.assert ['gw.mneko.net', :ping, 1]
+sleep 2
+agent.replace ['gw.mneko.net', :ping, :STATE], 0
+
+puts "Press any key.."
 gets
-e.dump_kb()
-exit(0)
 
-e.assert [:virtual_disk, 163, :active]
-#e.assert [:virtual_disk, 139, :active]
-#e.assert [:virtual_disk, 145, :active]
-#e.assert [:virtual_disk, 146, :active]
-#e.assert [:virtual_disk, 149, :active]
-e.assert [:virtual_disk, 153, :active]
-#e.assert [:virtual_disk, 154, :active]
-#e.assert [:virtual_disk, 156, :active]
-e.assert [:virtual_disk, 158, :active]
-#e.assert [:virtual_disk, 137, :active]
-#e.assert [:virtual_disk, 135, :active]
-#e.assert [:virtual_disk, 159, :active]
-#e.assert [:virtual_disk, 103, :active]
-#e.assert [:virtual_disk, 102, :active]
-#e.assert [:virtual_disk, 20, :active]
-#e.assert [:virtual_disk, 2, :active]
-#e.assert [:virtual_disk, 777, :active]
-#e.assert [:virtual_disk, 90, :active]
-e.assert [:mdraid, 153, :failed], true
-e.assert [:mdraid, 158, :failed], true
-e.execute()
-gets
+agent.join
+agent2.join
