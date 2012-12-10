@@ -3,9 +3,9 @@ require 'thread'
 require 'sexpistol'
 require_relative '../lib/cirrocumulus/identifier'
 require_relative '../lib/cirrocumulus/channels'
-require_relative '../lib/cirrocumulus/network_channel'
 require_relative '../lib/cirrocumulus/facts'
 require_relative '../lib/cirrocumulus/ontology'
+require_relative '../lib/cirrocumulus/channels/jabber'
 
 class Saga1 < Saga
   saga 'start_vds'
@@ -13,7 +13,7 @@ class Saga1 < Saga
   def start(arg)
     @arg = arg
 
-    query(LocalIdentifier.new('xen'), [:free_memory])
+    query(Agent.remote('deuterium-xen'), [:free_memory])
   end
 
   def dump_parameters
@@ -55,7 +55,7 @@ class NetworkMonitoringOntology < Ontology
 
 	rule 'test', [ [:start] ] do |ontology, params|
 		puts "hello world"
-		ontology.query Agent.all('xen'), [:free_memory], :reply_with => '1'
+		ontology.query Agent.remote('deuterium-xen'), [:free_memory], :reply_with => '1'
 		ontology.request LocalIdentifier.new('xen'), [:greet], :reply_with => 'greeting_test'
 	end
 
@@ -71,11 +71,11 @@ end
 
 Ontology.enable_console()
 
-agent = NetworkMonitoringOntology.new('network_monitor')
+agent = NetworkMonitoringOntology.new(Agent.jabber('network_monitor'))
 agent.assert([:start])
 agent.run()
 
-agent2 = HypervisorOntology.new('xen')
+agent2 = HypervisorOntology.new(Agent.jabber('xen'))
 agent2.run()
 
 agent.assert ['gw.mneko.net', :ping, 1]

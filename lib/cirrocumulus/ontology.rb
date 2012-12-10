@@ -82,15 +82,15 @@ class Ontology
 	#
 	# Infrastructure code
 	#
-	def initialize(identifier)
-		@identifier = LocalIdentifier.new(identifier)
-		@facts = FactsDatabase.new()
+  def initialize(identifier)
+    @identifier = identifier
+    @facts = FactsDatabase.new()
     @last_saga_id = 0
     @sagas = []
 
-		self.class.register_ontology_instance(self)
-		@mutex = Mutex.new
-	end
+    self.class.register_ontology_instance(self)
+    @mutex = Mutex.new
+  end
 
 	def run()
 		running = true
@@ -199,7 +199,7 @@ class Ontology
 	def inform(agent, fact, options = {})
 		puts "%25s | inform %s about %s %s" % [identifier, agent, Sexpistol.new.to_sexp(fact), print_message_options(options)]
 
-    channel = ChannelFactory.retrieve(agent)
+    channel = ChannelFactory.retrieve(identifier, agent)
     channel.inform(identifier, fact, options) if channel
 	end
 
@@ -213,7 +213,7 @@ class Ontology
 	def request(agent, contents, options = {})
 		puts "%25s | %s -> %s" % [identifier.to_s, Sexpistol.new.to_sexp(contents), agent.to_s]
 
-		channel = ChannelFactory.retrieve(agent)
+		channel = ChannelFactory.retrieve(identifier, agent)
 		channel.request(identifier, contents) if channel
 	end
 
@@ -224,7 +224,7 @@ class Ontology
 	def query(agent, expression, options = {})
     puts "%25s | query %s about %s %s" % [identifier, agent, Sexpistol.new.to_sexp(expression), print_message_options(options)]
 
-    channel = ChannelFactory.retrieve(agent)
+    channel = ChannelFactory.retrieve(identifier, agent)
     channel.query(identifier, expression, options) if channel
 	end
 

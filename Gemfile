@@ -5,6 +5,7 @@ gem "systemu"
 gem "xmpp4r"
 gem "xmpp4r-simple", :git => 'git://github.com/blaine/xmpp4r-simple.git'
 gem "deil_sexpistol", :require => "sexpistol"
+gem "guid"
 
 group :development do
   gem "rdoc", "~> 3.12"
