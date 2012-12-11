@@ -1,3 +1,7 @@
+#
+# Fact (piece of knowledge) representation.
+# It holds time when it was observed (added to facts database) and expire time in seconds.
+#
 class Fact
 	def initialize(data, time, options)
 		@data = data
@@ -15,6 +19,9 @@ class Fact
 	end
 end
 
+#
+# Adapter for facts database.
+#
 class FactsDatabase
 	def initialize
 		@storage = []
