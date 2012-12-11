@@ -1,24 +1,3 @@
 = Cirrocumulus
 
-Cirrocumulus is an agent-based (cloud) infrastructure management system. Each agent, running on a host, is responsible for its own problem and cooperates with the rest via XMPP as a transport and FIPA-ACL messages as a protocol.
-
-== Technical
-=== Message structure
-
-Each message is serialized in XML.
-It contains routing information, action type and content. Content always is an s-expression.
-
-Message structure looks like:
-  <fipa-message
-    receiver="optional receiving agent identifier"
-    ontology="domain, e.g. cirrocumulus-vps, cirrocumulus-xen"
-    act="request|query-ref|query-if|inform|failure">
-    <content>
-      (s-expression)
-    </content>
-  </fipa-message>
-
-=== Action types
-* request - asks receiver to perform some action, described in content
-* query-ref - query receiver for some information
-* query-if - asks receiver, if given proposition in content is true or false
+Cirrocumulus is an agent-based infrastructure management system. Each agent, running on a host, is responsible for its own problem and cooperates with the rest via XMPP as a transport and FIPA-ACL messages as a protocol.

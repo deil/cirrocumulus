@@ -1,11 +1,5 @@
 require 'bundler/setup'
-require 'thread'
-require 'sexpistol'
-require_relative '../lib/cirrocumulus/identifier'
-require_relative '../lib/cirrocumulus/channels'
-require_relative '../lib/cirrocumulus/facts'
-require_relative '../lib/cirrocumulus/ontology'
-require_relative '../lib/cirrocumulus/channels/jabber'
+require_relative '../lib/cirrocumulus'
 
 class Saga1 < Saga
   saga 'start_vds'

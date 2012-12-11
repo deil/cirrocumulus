@@ -1,10 +1,33 @@
+require_relative 'channels/jabber'
+
+#
+# Communication channel between agents. This is an abstract class.
+#
 class AbstractChannel
-  def inform(sender, proposition); end
+  #
+  # Informs the other side that given proposition is true.
+  #
+  def inform(sender, proposition, options = {}); end
+
+  #
+  # Request the other side to perform an action
+  #
   def request(sender, action, options = {}); end
+
+  #
+  # Query the other side about expression value.
+  #
   def query(sender, expression, options = {}); end
+
+  #
+  # Query the other side if given proposition is true.
+  #
   def query_if(sender, proposition, options = {}); end
 end
 
+#
+# Communication channel between different threads on local machine.
+#
 class ThreadChannel < AbstractChannel
   def initialize(ontology)
     @ontology = ontology
@@ -27,78 +50,59 @@ class ThreadChannel < AbstractChannel
   end
 end
 
+#
+# Communication channel over network.
+#
 class NetworkChannel < AbstractChannel
-  def initialize(local_instance, remote_identifier)
-    @remote_identifier = remote_identifier
-    @client = JabberChannel.query_client(local_instance.to_s)
+  def initialize(client, remote_jid)
+    @remote_jid = remote_jid
+    @client = client
+    @serializer = Sexpistol.new
   end
 
   def inform(sender, proposition, options = {})
-    msg = [
-      :inform,
-      [:receiver,
-        [:agent_identifier, :name, @remote_identifier.to_s]
-      ],
-      [:content, proposition]
-    ]
-    
-    msg << [:reply_with, options[:reply_with]] if options.has_key?(:reply_with)
-    msg << [:in_reply_to, options[:in_reply_to]] if options.has_key?(:in_reply_to)
-    msg << [:conversation_id, options[:conversation_id]] if options.has_key?(:conversation_id)
-    
-    @client.queue(Sexpistol.new.to_sexp(msg))
+    client.queue(serializer.to_sexp(build_message(remote_jid, :inform, proposition, options)))
   end
 
   def request(sender, action, options = {})
-    msg = [
-      :request,
-      [:receiver,
-        [:agent_identifier, :name, @remote_identifier.to_s]
-      ],
-      [:content, action]
-    ]
-    
-    msg << [:reply_with, options[:reply_with]] if options.has_key?(:reply_with)
-    msg << [:in_reply_to, options[:in_reply_to]] if options.has_key?(:in_reply_to)
-    msg << [:conversation_id, options[:conversation_id]] if options.has_key?(:conversation_id)
-    
-    @client.queue(Sexpistol.new.to_sexp(msg))
+    client.queue(serializer.to_sexp(build_message(remote_jid, :request, action, options)))
   end
 
   def query(sender, expression, options = {})
-    msg = [
-      :query,
-      [:receiver,
-        [:agent_identifier, :name, @remote_identifier.to_s]
-      ],
-      [:content, expression]
-    ]
-    
-    msg << [:reply_with, options[:reply_with]] if options.has_key?(:reply_with)
-    msg << [:in_reply_to, options[:in_reply_to]] if options.has_key?(:in_reply_to)
-    msg << [:conversation_id, options[:conversation_id]] if options.has_key?(:conversation_id)
-    
-    @client.queue(Sexpistol.new.to_sexp(msg))
+    client.queue(serializer.to_sexp(build_message(remote_jid, :query, expression, options)))
   end
 
   def query_if(sender, proposition, options = {})
+    client.queue(serializer.to_sexp(build_message(remote_jid, :query_if, proposition, options)))
+  end
+
+  private
+
+  attr_reader :client
+  attr_reader :remote_jid
+  attr_reader :serializer
+
+  def build_message(receiver_name, act, content, options)
     msg = [
-      :query_if,
+      act,
       [:receiver,
-        [:agent_identifier, :name, @remote_identifier.to_s]
+        [:agent_identifier, :name, receiver_name]
       ],
-      [:content, proposition]
+      [:content, content]
     ]
-    
+
     msg << [:reply_with, options[:reply_with]] if options.has_key?(:reply_with)
     msg << [:in_reply_to, options[:in_reply_to]] if options.has_key?(:in_reply_to)
     msg << [:conversation_id, options[:conversation_id]] if options.has_key?(:conversation_id)
-    
-    @client.queue(Sexpistol.new.to_sexp(msg))
+
+    msg
   end
-  
+
 end
 
+#
+# Factory to retrieve proper communication channel for two agents.
+#
 class ChannelFactory
   def self.retrieve(instance, agent)
     if agent.is_a?(LocalIdentifier)
@@ -110,9 +114,16 @@ class ChannelFactory
         puts "[WARN] Thread-local ontology not found for identifier=%s" % agent.to_s
       end
     elsif agent.is_a?(RemoteIdentifier)
-      return NetworkChannel.new(instance, agent.to_s)
+      jabber_client = JabberChannel.query_client(local_instance.to_s)
+
+      if jabber_client
+        return NetworkChannel.new(jabber_client, agent.to_s)
+      else
+        puts "[WARN] No active Jabber clients."
+      end
     end
 
+    puts "[WARN] No suitable channel found."
     nil
   end
 end
