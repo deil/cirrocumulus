@@ -123,7 +123,7 @@ class ChannelFactory
       end
     end
 
-    puts "[WARN] No suitable channel found."
+    puts "[WARN] No suitable channel found for #{agent.to_s} (#{agent.class.name})"
     nil
   end
 end
