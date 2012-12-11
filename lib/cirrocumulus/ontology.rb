@@ -92,6 +92,10 @@ class Ontology
     @mutex = Mutex.new
   end
 
+  def name
+    @@ontology_names[self.class.name]
+  end
+
 	def run()
 		running = true
 
@@ -239,6 +243,11 @@ class Ontology
 
 	def query_if_and_wait(agent, fact, options = {})
   end
+
+  #
+  # Custom code to restore previous state. Called at startup.
+  #
+  def restore_state; end
 
   #
   # Handles incoming fact. By default, just adds this fact to KB or redirects its processing to corresponding saga

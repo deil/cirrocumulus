@@ -65,12 +65,17 @@ end
 
 Ontology.enable_console()
 
+cc = Cirrocumulus::Environment.new('deuterium')
+
 agent = NetworkMonitoringOntology.new(Agent.network('network_monitor'))
+cc.load_ontology(agent)
+
 agent.assert([:start])
-agent.run()
 
 agent2 = HypervisorOntology.new(Agent.network('xen'))
-agent2.run()
+cc.load_ontology(agent2)
+
+cc.run
 
 agent.assert ['gw.mneko.net', :ping, 1]
 sleep 2
@@ -79,5 +84,4 @@ agent.replace ['gw.mneko.net', :ping, :STATE], 0
 puts "\nPress any key.."
 gets
 
-agent.join
-agent2.join
+cc.join
