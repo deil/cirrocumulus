@@ -3,7 +3,7 @@ require 'xmpp4r-simple'
 require 'guid'
 require 'thread'
 
-class JabberIdentifier
+class JabberIdentifier < RemoteIdentifier
   def initialize(jid)
     @jid = "#{Cirrocumulus::Environment.current.name}-#{jid}"
     @channel = JabberChannel.new('172.16.11.4', 'cirrocumulus')
