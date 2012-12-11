@@ -65,11 +65,11 @@ end
 
 Ontology.enable_console()
 
-agent = NetworkMonitoringOntology.new(Agent.jabber('network_monitor'))
+agent = NetworkMonitoringOntology.new(Agent.network('network_monitor'))
 agent.assert([:start])
 agent.run()
 
-agent2 = HypervisorOntology.new(Agent.jabber('xen'))
+agent2 = HypervisorOntology.new(Agent.network('xen'))
 agent2.run()
 
 agent.assert ['gw.mneko.net', :ping, 1]

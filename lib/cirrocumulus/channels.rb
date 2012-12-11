@@ -114,7 +114,7 @@ class ChannelFactory
         puts "[WARN] Thread-local ontology not found for identifier=%s" % agent.to_s
       end
     elsif agent.is_a?(RemoteIdentifier)
-      jabber_client = JabberChannel.query_client(local_instance.to_s)
+      jabber_client = JabberChannel.query_client(instance.to_s)
 
       if jabber_client
         return NetworkChannel.new(jabber_client, agent.to_s)
