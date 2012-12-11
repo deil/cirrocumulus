@@ -1,12 +1,18 @@
 module Cirrocumulus
   class Environment
+
+    def self.current
+      @@instance
+    end
+
     attr_reader :name
 
     def initialize(name)
+      puts "Loading #{name} Cirrocumulus environment."
+
       @name = name
       @ontologies = []
-
-      puts "Loading #{name} Cirrocumulus environment."
+      @@instance = self
     end
 
     def load_ontology(ontology_instance)
@@ -25,7 +31,7 @@ module Cirrocumulus
 
     private
 
-
+    @@instance = nil
 
   end
 end

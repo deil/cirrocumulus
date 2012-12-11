@@ -5,7 +5,7 @@ require 'thread'
 
 class JabberIdentifier
   def initialize(jid)
-    @jid = "deuterium-#{jid}"
+    @jid = "#{Cirrocumulus::Environment.current.name}-#{jid}"
     @channel = JabberChannel.new('172.16.11.4', 'cirrocumulus')
     @channel.connect(@jid, 'q1w2e3r4')
     @thrd = Thread.new do
