@@ -1,5 +1,4 @@
-require 'bundler/setup'
-require_relative '../../lib/cirrocumulus'
+require_relative '../lib/cirrocumulus'
 
 class TestOntology < Ontology
 end

@@ -1,5 +1,4 @@
-require 'bundler/setup'
-require_relative '../../lib/cirrocumulus'
+require_relative '../lib/cirrocumulus'
 
 describe LocalIdentifier do
   it 'two instances of class should be equal' do

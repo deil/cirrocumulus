@@ -28,7 +28,7 @@ end
 class HypervisorOntology < Ontology
 	ontology 'xen'
 
-	rule 'test1', [ [:test] ] do |ontology, params|
+	rule 'test1', [ [:spec] ] do |ontology, params|
   end
 
   def handle_query(sender, expression, options = {})

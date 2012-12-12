@@ -36,6 +36,6 @@ class FactsDatabase
 	end
 
 	def enumerate
-		@storage
+		@storage.dup
 	end
 end
