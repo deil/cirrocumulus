@@ -1,5 +1,3 @@
-require_relative 'channels/jabber'
-
 #
 # Syntax sugar for agent identifiers.
 #

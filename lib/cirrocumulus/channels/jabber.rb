@@ -2,7 +2,6 @@ require 'xmpp4r'
 require 'xmpp4r-simple'
 require 'guid'
 require 'thread'
-require_relative '../identifier'
 
 class JabberIdentifier < RemoteIdentifier
   def initialize(jid)
