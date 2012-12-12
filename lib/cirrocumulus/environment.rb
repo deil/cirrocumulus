@@ -1,4 +1,7 @@
 module Cirrocumulus
+  #
+  # Cirrocumulus environment. It is a container where all ontologies will be loaded.
+  #
   class Environment
 
     def self.current
@@ -15,11 +18,17 @@ module Cirrocumulus
       @@instance = self
     end
 
+    #
+    # Loads ontology instance into environment.
+    #
     def load_ontology(ontology_instance)
       puts "Adding #{ontology_instance.name} ontology."
       @ontologies << ontology_instance
     end
 
+    #
+    # Runs the environment. It will also restore all loaded ontologies states.
+    #
     def run
       @ontologies.each {|ontology| ontology.restore_state }
       @ontologies.each {|ontology| ontology.run }

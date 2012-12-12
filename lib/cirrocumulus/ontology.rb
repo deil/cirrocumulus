@@ -1,7 +1,5 @@
-require 'drb'
 require_relative 'pattern_matching'
 require_relative 'saga'
-require_relative 'remote_console'
 
 class RuleDescription
 	attr_reader :name
@@ -73,6 +71,9 @@ class Ontology
 		end
 
 		def rule(name, predicate, options = {}, &block)
+      return if predicate.empty?
+      return if current_ruleset.count {|rule| rule.name == name} > 0
+
 			current_ruleset << RuleDescription.new(name, predicate, options, block)
 		end
 	end
