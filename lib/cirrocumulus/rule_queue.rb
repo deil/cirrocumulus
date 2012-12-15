@@ -17,9 +17,10 @@ class RuleQueue
     end
   end
 
-  def initialize
+  def initialize(ontology_instance)
     @mutex = Mutex.new
     @queue = []
+    @ontology_instance = ontology_instance
   end
 
   def push(entry)
@@ -48,15 +49,21 @@ class RuleQueue
         next
       end
 
-      if entry.run_data.matched_facts.all? {|fact| fact.is_deleted}
+      if entry.run_data.matched_facts.all? {|fact| !fact.is_deleted}
         begin
           debug "Executing #{entry.rule.name}#{entry.params.inspect}"
-          entry.rule.code.call(self, entry.params)
+          entry.rule.code.call(@ontology_instance, entry.params)
           entry.state
         rescue Exception => e
           puts "[WARN] Exception while executing rule: %s\n%s" % [e.to_s, e.backtrace.to_s]
         end
       end
     end
+  end
+
+  private
+
+  def debug(msg)
+    puts msg
   end
 end

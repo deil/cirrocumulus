@@ -96,7 +96,7 @@ class Ontology
 
     self.class.register_ontology_instance(self)
     @mutex = Mutex.new
-    @rule_queue = RuleQueue.new
+    @rule_queue = RuleQueue.new(self)
   end
 
   def name
