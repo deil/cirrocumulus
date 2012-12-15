@@ -1,5 +1,6 @@
 require 'bundler/setup'
 require_relative '../lib/cirrocumulus'
+require_relative '../lib/cirrocumulus/remote_console'
 
 class Saga1 < Saga
   saga 'start_vds'
