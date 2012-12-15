@@ -1,4 +1,5 @@
 require_relative 'pattern_matching'
+require_relative 'rule_queue'
 require_relative 'saga'
 
 class RuleDescription
@@ -12,7 +13,11 @@ class RuleDescription
 	  @conditions = conditions
 	  @options = options
 	  @code = code
-	end
+  end
+
+  def ==(other)
+    name == other.name
+  end
 end
 
 class Ontology
@@ -91,6 +96,7 @@ class Ontology
 
     self.class.register_ontology_instance(self)
     @mutex = Mutex.new
+    @rule_queue = RuleQueue.new
   end
 
   def name
@@ -325,7 +331,7 @@ class Ontology
 	end
 
 	def execute_rule(match_data)
-		match_data.rule.code.call(self, match_data.parameters)
+    @rule_queue.push(match_data)
 	end
 
   def print_message_options(options = {})

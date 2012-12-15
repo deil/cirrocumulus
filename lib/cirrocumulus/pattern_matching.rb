@@ -8,6 +8,10 @@ class MatchResult
 	attr_reader :rule
 	attr_reader :matched_facts
 	attr_accessor :parameters
+
+  def ==(other)
+    rule == other.rule && matched_facts == other.matched_facts
+  end
 end
 
 class PatternMatcher
@@ -29,7 +33,7 @@ class PatternMatcher
 
 		pattern_candidates = []
 		rule.conditions.each do |pattern|
-		 pattern_candidates << find_matches_for_condition(pattern)
+      pattern_candidates << find_matches_for_condition(pattern)
 		end
 
 		return nil if !pattern_candidates.all? {|c| c.size > 0}
@@ -37,10 +41,10 @@ class PatternMatcher
 		intersect_matches_for_each_condition(rule, pattern_candidates)
 	end
 
-	def find_matches_for_condition(pattern)
-		trace "=> attempting to match pattern #{pattern.inspect}"
-	 fact_matches = true
-	 candidates = []
+  def find_matches_for_condition(pattern)
+    trace "=> attempting to match pattern #{pattern.inspect}"
+    fact_matches = true
+    candidates = []
 
 	 @facts.each do |fact|
 	   next if fact.data.size != pattern.size
@@ -53,12 +57,12 @@ class PatternMatcher
 	     end
 	   end
 
-	   candidates << fact if fact_matches
-	 end
+      candidates << fact if fact_matches
+    end
 
 		trace "=> candidates: #{candidates.size}" if candidates.size > 0
-	  candidates
-	end
+    candidates
+  end
 
 	def intersect_matches_for_each_condition(rule, candidates)
 	 result = []
