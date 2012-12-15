@@ -108,7 +108,8 @@ class Ontology
 
 		@thread = Thread.new(self) do |ontology|
 			while self.running do
-				ontology.timeout_facts()
+				ontology.timeout_facts
+        @rule_queue.run_queued_rules
 				sleep 0.1
 			end
 		end
