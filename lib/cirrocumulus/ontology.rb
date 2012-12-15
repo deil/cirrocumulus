@@ -104,7 +104,7 @@ class Ontology
   end
 
 	def run()
-		running = true
+		self.running = true
 
 		@thread = Thread.new(self) do |ontology|
 			while self.running do
@@ -116,7 +116,7 @@ class Ontology
 	end
 
 	def join
-		running = false
+		self.running = false
 		@thread.join()
 	end
 

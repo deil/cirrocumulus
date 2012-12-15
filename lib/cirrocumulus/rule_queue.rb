@@ -41,22 +41,20 @@ class RuleQueue
   end
 
   def run_queued_rules
-    @mutex.synchronize do
-      while (entry = pop) != nil do
-        next if entry.state == :finished
-        if entry.run_at.nil? && entry.run_at < Time.now
-          push(entry)
-          next
-        end
+    while (entry = pop) != nil do
+      next if entry.state == :finished
+      if entry.run_at && (entry.run_at < Time.now)
+        push(entry)
+        next
+      end
 
-        if entry.run_data.matched_facts.all? {|fact| fact.is_deleted}
-          begin
-            debug "Executing #{entry.rule.name}#{entry.params.inspect}"
-            entry.rule.code.call(self, entry.params)
-            entry.state
-          rescue Exception => e
-            puts "[WARN] Exception while executing rule: %s\n%s" % [e.to_s, e.backtrace.to_s]
-          end
+      if entry.run_data.matched_facts.all? {|fact| fact.is_deleted}
+        begin
+          debug "Executing #{entry.rule.name}#{entry.params.inspect}"
+          entry.rule.code.call(self, entry.params)
+          entry.state
+        rescue Exception => e
+          puts "[WARN] Exception while executing rule: %s\n%s" % [e.to_s, e.backtrace.to_s]
         end
       end
     end
