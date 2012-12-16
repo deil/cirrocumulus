@@ -1,0 +1,44 @@
+require_relative '../lib/cirrocumulus/facts'
+
+class Storage < KnowledgeClass
+  klass :storage
+  id :number
+  property :state
+  property :capacity
+end
+
+describe KnowledgeClass do
+  describe '+from_fact' do
+    it 'correctly initializes from fact standard representation' do
+      fact = [:storage, 2, :state, :offline, :capacity, 100]
+      s = Storage.from_fact(fact)
+
+      s.should be_instance_of Storage
+      s.number.should == 2
+      s.state.should == :offline
+      s.capacity.should == 100
+    end
+  end
+
+  describe '#to_template' do
+    it 'serializes instance to fact template' do
+      s = Storage.new
+      s.number = 3
+      s.state = :online
+      s.capacity = 256
+
+      s.to_template.should == [:storage, 3, :state, :STATE, :capacity, :CAPACITY]
+    end
+  end
+
+  describe '#to_fact' do
+    it 'correctly serializes instance to fact standard representation' do
+      s = Storage.new
+      s.number = 1
+      s.state = :online
+      s.capacity = 100
+
+      s.to_fact.should == [:storage, 1, :state, :online, :capacity, 100]
+    end
+  end
+end
