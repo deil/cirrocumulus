@@ -91,6 +91,7 @@ class Ontology
   def initialize(identifier)
     @identifier = identifier
     @facts = FactsDatabase.new()
+    @classes = []
     @last_saga_id = 0
     @sagas = []
 
@@ -118,7 +119,11 @@ class Ontology
 	def join
 		self.running = false
 		@thread.join()
-	end
+  end
+
+  def add_knowledge_class(klass)
+    @classes << klass
+  end
 
 	def assert(fact, options = {})
 		@mutex.synchronize do
