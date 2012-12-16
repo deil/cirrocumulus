@@ -52,6 +52,12 @@ class JabberIdentifier < RemoteIdentifier
               case act
                 when :query
                   instance.handle_query(id, action_content, options)
+                when :query_if
+                  instance.handle_query_if(id, action_content, options)
+                when :inform
+                  instance.handle_inform(id, action_content, options)
+                when :request
+                  instance.handle_request(id, action_content, options)
               end
             rescue Exception => ex
               puts ex.message
@@ -102,6 +108,8 @@ class JabberChannel
   def connect(jid, password)
     @full_jid = "%s@%s" % [jid, @server]
     @jid = jid
+
+    puts "Using jid #{@jid}"
     
     begin
       @jabber = Jabber::Simple.new(@full_jid, password)
