@@ -79,7 +79,8 @@ class Ontology
       return if predicate.empty?
       return if current_ruleset.count {|rule| rule.name == name} > 0
 
-			current_ruleset << RuleDescription.new(name, predicate, options, block)
+      distilled_predicate = predicate.map {|cond| cond.is_a?(KnowledgeClass) ? cond.to_params : cond}
+			current_ruleset << RuleDescription.new(name, distilled_predicate, options, block)
 		end
 	end
 
