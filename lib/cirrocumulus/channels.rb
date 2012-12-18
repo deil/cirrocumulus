@@ -69,11 +69,11 @@ class ThreadChannel < AbstractChannel
   end
 
   def refuse(sender, action, reason, options = {})
-    @ontology.handle_refuse(sender, [action, reason], options)
+    @ontology.handle_refuse(sender, action, reason, options)
   end
 
   def failure(sender, action, reason, options = {})
-    @ontology.handle_failure(sender, [action, reason], options)
+    @ontology.handle_failure(sender, action, reason, options)
   end
 end
 

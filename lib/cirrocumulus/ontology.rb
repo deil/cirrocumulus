@@ -328,16 +328,14 @@ class Ontology
     end
   end
 
-  def handle_refuse(sender, action_with_reason, options = {})
-    if !handle_saga_reply(sender, :refuse, action_with_reason, options)
+  def handle_refuse(sender, action, reason, options = {})
+    if !handle_saga_reply(sender, :refuse, [action, reason], options)
       puts "%25s | %s refused to perform %s because %s %s" % [identifier, sender, Sexpistol.new.to_sexp(action), Sexpistol.new.to_sexp(reason), print_message_options(options)]
     end
   end
 
-  def handle_failure(sender, action_with_reason, options = {})
-    if !handle_saga_reply(sender, :failure, action_with_reason, options)
-      action = action_with_reason[0]
-      reason = action_with_reason[1]
+  def handle_failure(sender, action, reason, options = {})
+    if !handle_saga_reply(sender, :failure, [action, reason], options)
       puts "%25s | %s failed to perform %s because %s %s" % [identifier, sender, Sexpistol.new.to_sexp(action), Sexpistol.new.to_sexp(reason), print_message_options(options)]
     end
   end

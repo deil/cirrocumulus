@@ -61,9 +61,9 @@ class JabberIdentifier < RemoteIdentifier
                 when :agree
                   instance.handle_agree(id, action_content, options)
                 when :refuse
-                  instance.handle_refuse(id, action[0], action[1], options)
+                  instance.handle_refuse(id, action_content[0], action_content[1], options)
                 when :failure
-                  instance.handle_failure(id, action[0], action[1], options)
+                  instance.handle_failure(id, action_content[0], action_content[1], options)
               end
             rescue Exception => ex
               puts ex.message
