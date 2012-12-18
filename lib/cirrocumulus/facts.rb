@@ -102,8 +102,19 @@ class KnowledgeClass
 
   attr_reader :values
 
-  def initialize
+  def initialize(options = {})
     @values = {}
+
+    description = @@classes[self.class.name]
+    if options.has_key?(description.primary_key.to_sym)
+      @values[description.primary_key] = options[description.primary_key.to_sym]
+    end
+
+    description.properties.each do |prop|
+      next if prop == description.primary_key
+      next unless options.has_key?(prop.to_sym)
+      @values[prop] = options[prop.to_sym]
+    end
   end
 
   def to_template
@@ -115,6 +126,20 @@ class KnowledgeClass
 
       fact << k.to_sym
       fact << values[k]
+    end
+
+    fact
+  end
+
+  def to_params
+    description = @@classes[self.class.name]
+    fact = [description.name.to_sym]
+    fact << (values.has_key?(description.primary_key) ? values[description.primary_key] : description.primary_key.upcase.to_sym)
+    description.properties.each do |k|
+      next if k == description.primary_key
+
+      fact << k.to_sym
+      fact << (values.has_key?(k) ? values[k] : k.upcase.to_sym)
     end
 
     fact
