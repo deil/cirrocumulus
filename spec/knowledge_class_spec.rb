@@ -20,16 +20,23 @@ describe KnowledgeClass do
     end
   end
 
+  describe '+to_template' do
+    it 'returns fact template' do
+      Storage.to_template.should == [:storage, :NUMBER, :state, :STATE, :capacity, :CAPACITY]
+    end
+  end
+
   describe '#to_template' do
     it 'serializes instance to fact template' do
       s = Storage.new
-      s.number = 3
+      s.number = 1
       s.state = :online
-      s.capacity = 256
+      s.capacity = 100
 
-      s.to_template.should == [:storage, 3, :state, :STATE, :capacity, :CAPACITY]
+      s.to_template.should == [:storage, 1, :state, :online, :capacity, 100]
     end
   end
+
 
   describe '#to_fact' do
     it 'correctly serializes instance to fact standard representation' do

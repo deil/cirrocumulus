@@ -43,8 +43,21 @@ class Saga
   #
   # Inter-agent communications with context of this saga.
   #
+
   def inform(agent, proposition)
     @ontology.inform agent, proposition, :conversation_id => self.id
+  end
+
+  def agree(agent, action)
+    @ontology.agree agent, action, :conversation_id => self.id
+  end
+
+  def refuse(agent, action, reason)
+    @ontology.refuse agent, action, reason, :conversation_id => self.id
+  end
+
+  def failure(agent, action, reason = true)
+    @ontology.failure agent, action, reason, :conversation_id => self.id
   end
 
   def request(agent, action)

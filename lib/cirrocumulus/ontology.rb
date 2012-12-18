@@ -180,6 +180,10 @@ class Ontology
    end
  end
 
+  def report_incident(subject, description)
+
+  end
+
   def dump_kb()
     @facts.enumerate.map {|fact| fact.data.to_s}
   end
@@ -222,7 +226,37 @@ class Ontology
 
 	def inform_and_wait(agent, fact, options = {})
 
-	end
+  end
+
+  #
+  # The action of agreeing to perform some action, possibly in the future.
+  #
+  def agree(agent, action, options = {})
+    puts "%25s | agree with %s to perform %s %s" % [identifier, agent, Sexpistol.new.to_sexp(action), print_message_options(options)]
+
+    channel = ChannelFactory.retrieve(identifier, agent)
+    channel.agree(identifier, action, options) if channel
+  end
+
+  #
+  # The action of refusing to perform a given action, and explaining the reason for the refusal.
+  #
+  def refuse(agent, action, reason, options = {})
+    puts "%25s | refuse %s to perform %s because %s %s" % [identifier, agent, Sexpistol.new.to_sexp(action), Sexpistol.new.to_sexp(reason), print_message_options(options)]
+
+    channel = ChannelFactory.retrieve(identifier, agent)
+    channel.refuse(identifier, action, reason, options) if channel
+  end
+
+  #
+  # The action of telling another agent that an action was attempted but the attempt failed.
+  #
+  def failure(agent, action, reason = true , options = {})
+    puts "%25s | inform %s that action %s failed with reason %s %s" % [identifier, agent, Sexpistol.new.to_sexp(action), Sexpistol.new.to_sexp(reason), print_message_options(options)]
+
+    channel = ChannelFactory.retrieve(identifier, agent)
+    channel.failure(identifier, action, reason, options) if channel
+  end
 
   #
   # Send request to another agent.
@@ -268,35 +302,81 @@ class Ontology
   def handle_inform(sender, proposition, options = {})
     puts "%25s | received %s from %s %s" % [identifier, Sexpistol.new.to_sexp(proposition), sender, print_message_options(options)]
 
-    if options.has_key?(:conversation_id) || options.has_key?(:in_reply_to)
-      saga_id = options[:conversation_id] || options[:in_reply_to]
-      saga = @sagas.find {|saga| saga.id == saga_id}
-      saga.handle_reply(sender, proposition, :action => :inform) if saga
-    else
+    if !handle_saga_reply(sender, :inform, proposition, options)
+      @classes.each do |klass|
+        if instance = klass.from_fact(proposition)
+          matcher = PatternMatcher.new(@facts.enumerate)
+          bindings = matcher.match(instance.to_template)
+          if !bindings.empty?
+            replace instance.to_template, matcher.pattern_matches?(proposition, instance.to_template)
+          else
+            assert(proposition)
+          end
+
+          return
+        end
+      end
+
       assert proposition, :origin => sender
+    end
+  end
+
+
+  def handle_agree(sender, action, options = {})
+    if !handle_saga_reply(sender, :agree, action, options)
+      puts "%25s | %s agreed to perform %s %s" % [identifier, sender, Sexpistol.new.to_sexp(action), print_message_options(options)]
+    end
+  end
+
+  def handle_refuse(sender, action_with_reason, options = {})
+    if !handle_saga_reply(sender, :refuse, action_with_reason, options)
+      puts "%25s | %s refused to perform %s because %s %s" % [identifier, sender, Sexpistol.new.to_sexp(action), Sexpistol.new.to_sexp(reason), print_message_options(options)]
+    end
+  end
+
+  def handle_failure(sender, action_with_reason, options = {})
+    if !handle_saga_reply(sender, :failure, action_with_reason, options)
+      action = action_with_reason[0]
+      reason = action_with_reason[1]
+      puts "%25s | %s failed to perform %s because %s %s" % [identifier, sender, Sexpistol.new.to_sexp(action), Sexpistol.new.to_sexp(reason), print_message_options(options)]
     end
   end
 
   #
   # Abstract method to handle requests to this ontology.
   #
-	def handle_request(sender, contents, options = {}); end
+	def handle_request(sender, contents, options = {})
+    if !handle_saga_reply(sender, :request, contents, options)
+      puts "%25s | %s requests to perform %s %s" % [identifier, sender, Sexpistol.new.to_sexp(contents), print_message_options(options)]
+    end
+  end
 
   def handle_query(sender, expression, options = {})
-    puts "%25s | %s queries %s %s" % [identifier, sender, Sexpistol.new.to_sexp(expression), print_message_options(options)]
+    puts "%25s | %s queries %s %s" % [identifier, sender, Sexpistol.new.to_sexp(expression), print_message_options(options)] unless handle_saga_reply(sender, :query, expression, options)
   end
 
   #
   # Handles query-if to ontology. By default, it lookups the fact in KB and replies to the sender.
   #
   def handle_query_if(sender, proposition, options = {})
-    puts "%25s | %s queries if %s %s" % [identifier, sender, Sexpistol.new.to_sexp(proposition), print_message_options(options)]
+    puts "%25s | %s queries if %s %s" % [identifier, sender, Sexpistol.new.to_sexp(proposition), print_message_options(options)] unless handle_saga_reply(sender, :query, expression, options)
   end
 
 	protected
 
 	attr_reader :facts
 	attr_accessor :running
+
+  def handle_saga_reply(sender, action, content, options)
+    if options.has_key?(:conversation_id) || options.has_key?(:in_reply_to)
+      saga_id = options[:conversation_id] || options[:in_reply_to]
+      saga = @sagas.find {|saga| saga.id == saga_id}
+      saga.handle_reply(sender, content, :action => action) if saga
+      return true
+    end
+
+    false
+  end
 
 	def assert_nb(fact, options = {}, silent = false)
 		silent = options unless options.is_a?(Hash)

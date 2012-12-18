@@ -71,6 +71,20 @@ class KnowledgeClass
       @@classes[self.name].properties << property_name.to_s
     end
 
+    def to_template
+      description = @@classes[self.name]
+      fact = [description.name.to_sym]
+      fact << description.primary_key.upcase.to_sym
+      description.properties.each do |k|
+        next if k == description.primary_key
+
+        fact << k.to_sym
+        fact << k.upcase.to_sym
+      end
+
+      fact
+    end
+
     def from_fact(fact)
       description = @@classes[self.name]
       return nil if fact[0] != description.name.to_sym
@@ -100,7 +114,7 @@ class KnowledgeClass
       next if k == description.primary_key
 
       fact << k.to_sym
-      fact << k.upcase.to_sym
+      fact << values[k]
     end
 
     fact

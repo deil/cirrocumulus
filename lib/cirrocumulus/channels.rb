@@ -23,6 +23,21 @@ class AbstractChannel
   # Query the other side if given proposition is true.
   #
   def query_if(sender, proposition, options = {}); end
+
+  #
+  # Agree to perform an action
+  #
+  def agree(sender, action, options = {}); end
+
+  #
+  # Refuse to perform an action, because of reason.
+  #
+  def refuse(sender, action, reason, options = {}); end
+
+  #
+  # Attempted to perform an action, but failed with given reason.
+  #
+  def failure(sender, action, reason, options = {}); end
 end
 
 #
@@ -47,6 +62,18 @@ class ThreadChannel < AbstractChannel
 
   def query_if(sender, proposition, options = {})
     @ontology.handle_query_if(sender, proposition, options)
+  end
+
+  def agree(sender, action, options = {})
+    @ontology.handle_agree(sender, action, options)
+  end
+
+  def refuse(sender, action, reason, options = {})
+    @ontology.handle_refuse(sender, [action, reason], options)
+  end
+
+  def failure(sender, action, reason, options = {})
+    @ontology.handle_failure(sender, [action, reason], options)
   end
 end
 
@@ -74,6 +101,18 @@ class NetworkChannel < AbstractChannel
 
   def query_if(sender, proposition, options = {})
     client.queue(serializer.to_sexp(build_message(remote_jid, :query_if, proposition, options)))
+  end
+
+  def agree(sender, action, options = {})
+    client.queue(serializer.to_sexp(build_message(remote_jid, :agree, action, options)))
+  end
+
+  def refuse(sender, action, reason, options = {})
+    client.queue(serializer.to_sexp(build_message(remote_jid, :refuse, [action, reason], options)))
+  end
+
+  def failure(sender, action, reason, options = {})
+    client.queue(serializer.to_sexp(build_message(remote_jid, :failure, [action, reason], options)))
   end
 
   private
