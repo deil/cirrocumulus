@@ -182,6 +182,6 @@ class JabberChannel
   protected
   
   def join_conference(conference)
-    @jabber.send!("<presence to='#{conference}@conference.#{@server}/#{@jid}' />")
+    @jabber.send!("<presence to='#{conference}@conference.#{@@jid_suffix || @server}/#{@jid}' />")
   end
 end
