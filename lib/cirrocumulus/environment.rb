@@ -1,3 +1,5 @@
+require 'log4r'
+
 module Cirrocumulus
   #
   # Cirrocumulus environment. It is a container where all ontologies will be loaded.
@@ -11,7 +13,7 @@ module Cirrocumulus
     attr_reader :name
 
     def initialize(name)
-      puts "Loading #{name} Cirrocumulus environment."
+      Log4r::Logger['agent'].info "Loading #{name} Cirrocumulus environment"
 
       @name = name
       @ontologies = []
@@ -22,7 +24,7 @@ module Cirrocumulus
     # Loads ontology instance into environment.
     #
     def load_ontology(ontology_instance)
-      puts "Adding #{ontology_instance.name} ontology."
+      Log4r::Logger['agent'].info "Adding #{ontology_instance.name} ontology"
       @ontologies << ontology_instance
     end
 

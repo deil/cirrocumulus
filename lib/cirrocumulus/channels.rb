@@ -1,3 +1,4 @@
+require 'log4r'
 require_relative 'channels/jabber'
 
 #
@@ -150,7 +151,7 @@ class ChannelFactory
       if ontology_instance
         return ThreadChannel.new(Ontology.query_ontology_instance(agent))
       else
-        puts "[WARN] Thread-local ontology not found for identifier=%s" % agent.to_s
+        Logger['channels::factory'].warn "Thread-local ontology not found for identifier=%s" % agent.to_s
       end
     elsif agent.is_a?(RemoteIdentifier)
       jabber_client = JabberChannel.query_client(instance.to_s)
@@ -158,11 +159,11 @@ class ChannelFactory
       if jabber_client
         return NetworkChannel.new(jabber_client, agent.to_s)
       else
-        puts "[WARN] No active Jabber clients."
+        Logger['channels::factory'].warn "No active Jabber clients."
       end
     end
 
-    puts "[WARN] No suitable channel found for #{agent.to_s} (#{agent.class.name})"
+    Logger['channels::factory'].warn "No suitable channel found for #{agent.to_s} (#{agent.class.name})"
     nil
   end
 end

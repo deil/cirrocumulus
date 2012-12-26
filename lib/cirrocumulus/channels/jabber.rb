@@ -7,7 +7,7 @@ class JabberIdentifier < RemoteIdentifier
   def initialize(jid)
     @jid = "#{Cirrocumulus::Environment.current.name}-#{jid}"
     @channel = JabberChannel.new()
-    @channel.connect(@jid, 'q1w2e3r4')
+    @channel.connect(@jid)
     @thrd = Thread.new do
       parser = Sexpistol.new
       while true do
@@ -66,8 +66,10 @@ class JabberIdentifier < RemoteIdentifier
                   instance.handle_failure(id, action_content[0], action_content[1], options)
               end
             rescue Exception => ex
-              puts ex.message
-              puts ex.backtrace.to_s
+              Log4r::Logger['channels'].warn("Failed to process incoming message")
+              Log4r::Logger['channels'].debug("Message body: #{msg.body}")
+              Log4r::Logger['channels'].debug("Exception: #{ex.message}")
+              Log4r::Logger['channels'].debug("Backtrace: #{ex.backtrace.join("\n")}")
             end
           end
         end
@@ -97,12 +99,12 @@ class JabberChannel
       @@server = server
     end
 
-    def conference(conf)
-      @@conference = conf
+    def password(pass)
+      @@password = pass
     end
 
-    def jid_suffix(suffix)
-      @@jid_suffix = suffix
+    def conference(conf)
+      @@conference = conf
     end
   end
 
@@ -123,24 +125,26 @@ class JabberChannel
     @jabber && @jabber.connected?
   end
   
-  def connect(jid, password)
-    @full_jid = "%s@%s" % [jid, @@jid_suffix || @server]
+  def connect(jid)
+    @full_jid = "%s@%s" % [jid, @server]
     @jid = jid
 
-    puts "Using jid #{@jid}"
+    Log4r::Logger['channels::jabber'].info "Server: #{@server}"
+    Log4r::Logger['channels::jabber'].info "JID: '#{@jid}'"
     
     begin
-      @jabber = Jabber::Simple.new(@full_jid, password)
+      @jabber = Jabber::Simple.new(@full_jid, @@password)
     rescue Jabber::ClientAuthenticationFailure => ex
-      puts ex.class.name
-      puts ex.to_s
+      Log4r::Logger['channels::jabber'].debug('Received Jabber::ClientAuthenticationFailure, registering new account')
       client = Jabber::Client.new(@full_jid)
       client.connect()
       client.register(password)
       client.close()
-      @jabber = Jabber::Simple.new(@full_jid, password)
+      @jabber = Jabber::Simple.new(@full_jid, @@password)
     rescue Exception => ex
-      puts ex.to_s
+      Log4::Logger['channels::jabber'].fatal('Failed to register new account or connect.')
+      Log4::Logger['channels::jabber'].fatal("Received exception: #{ex.to_s}")
+      return false
     end
     
     join_conference(@conference) if connected?
@@ -182,6 +186,7 @@ class JabberChannel
   protected
   
   def join_conference(conference)
-    @jabber.send!("<presence to='#{conference}@conference.#{@@jid_suffix || @server}/#{@jid}' />")
+    Log4r::Logger['channels::jabber'].info "Joining conference '#{conference}'"
+    @jabber.send!("<presence to='#{conference}@conference.#{@server}/#{@jid}' />")
   end
 end

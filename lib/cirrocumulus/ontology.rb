@@ -95,6 +95,7 @@ class Ontology
     @classes = []
     @last_saga_id = 0
     @sagas = []
+    @last_tick_time = Time.now
 
     self.class.register_ontology_instance(self)
     @mutex = Mutex.new
@@ -112,6 +113,12 @@ class Ontology
 			while self.running do
 				ontology.timeout_facts
         @rule_queue.run_queued_rules
+
+        if Time.now - @last_tick_time > 1
+          ontology.tick
+          @last_tick_time = Time.now
+        end
+
 				sleep 0.1
 			end
 		end
@@ -219,7 +226,7 @@ class Ontology
   # Inform another agent about a fact. Normally, it will be added to it's KB.
   #
 	def inform(agent, fact, options = {})
-		puts "%25s | inform %s about %s %s" % [identifier, agent, Sexpistol.new.to_sexp(fact), print_message_options(options)]
+		info "%25s | inform %s about %s %s" % [identifier, agent, Sexpistol.new.to_sexp(fact), print_message_options(options)]
 
     channel = ChannelFactory.retrieve(identifier, agent)
     channel.inform(identifier, fact, options) if channel
@@ -233,7 +240,7 @@ class Ontology
   # The action of agreeing to perform some action, possibly in the future.
   #
   def agree(agent, action, options = {})
-    puts "%25s | agree with %s to perform %s %s" % [identifier, agent, Sexpistol.new.to_sexp(action), print_message_options(options)]
+    info "%25s | agree with %s to perform %s %s" % [identifier, agent, Sexpistol.new.to_sexp(action), print_message_options(options)]
 
     channel = ChannelFactory.retrieve(identifier, agent)
     channel.agree(identifier, action, options) if channel
@@ -243,7 +250,7 @@ class Ontology
   # The action of refusing to perform a given action, and explaining the reason for the refusal.
   #
   def refuse(agent, action, reason, options = {})
-    puts "%25s | refuse %s to perform %s because %s %s" % [identifier, agent, Sexpistol.new.to_sexp(action), Sexpistol.new.to_sexp(reason), print_message_options(options)]
+    info "%25s | refuse %s to perform %s because %s %s" % [identifier, agent, Sexpistol.new.to_sexp(action), Sexpistol.new.to_sexp(reason), print_message_options(options)]
 
     channel = ChannelFactory.retrieve(identifier, agent)
     channel.refuse(identifier, action, reason, options) if channel
@@ -253,7 +260,7 @@ class Ontology
   # The action of telling another agent that an action was attempted but the attempt failed.
   #
   def failure(agent, action, reason = true , options = {})
-    puts "%25s | inform %s that action %s failed with reason %s %s" % [identifier, agent, Sexpistol.new.to_sexp(action), Sexpistol.new.to_sexp(reason), print_message_options(options)]
+    info "%25s | inform %s that action %s failed with reason %s %s" % [identifier, agent, Sexpistol.new.to_sexp(action), Sexpistol.new.to_sexp(reason), print_message_options(options)]
 
     channel = ChannelFactory.retrieve(identifier, agent)
     channel.failure(identifier, action, reason, options) if channel
@@ -263,7 +270,7 @@ class Ontology
   # Send request to another agent.
   #
 	def request(agent, contents, options = {})
-		puts "%25s | %s -> %s" % [identifier.to_s, Sexpistol.new.to_sexp(contents), agent.to_s]
+		info "%25s | %s -> %s" % [identifier.to_s, Sexpistol.new.to_sexp(contents), agent.to_s]
 
 		channel = ChannelFactory.retrieve(identifier, agent)
 		channel.request(identifier, contents) if channel
@@ -274,7 +281,7 @@ class Ontology
 	end
 
 	def query(agent, expression, options = {})
-    puts "%25s | query %s about %s %s" % [identifier, agent, Sexpistol.new.to_sexp(expression), print_message_options(options)]
+    info "%25s | query %s about %s %s" % [identifier, agent, Sexpistol.new.to_sexp(expression), print_message_options(options)]
 
     channel = ChannelFactory.retrieve(identifier, agent)
     channel.query(identifier, expression, options) if channel
@@ -296,6 +303,11 @@ class Ontology
   # Custom code to restore previous state. Called at startup.
   #
   def restore_state; end
+
+  #
+  # Tick. Every second.
+  #
+  def tick; end
 
   #
   # Handles incoming fact. By default, just adds this fact to KB or redirects its processing to corresponding saga
@@ -325,19 +337,19 @@ class Ontology
 
   def handle_agree(sender, action, options = {})
     if !handle_saga_reply(sender, :agree, action, options)
-      puts "%25s | %s agreed to perform %s %s" % [identifier, sender, Sexpistol.new.to_sexp(action), print_message_options(options)]
+      info "%25s | %s agreed to perform %s %s" % [identifier, sender, Sexpistol.new.to_sexp(action), print_message_options(options)]
     end
   end
 
   def handle_refuse(sender, action, reason, options = {})
     if !handle_saga_reply(sender, :refuse, [action, reason], options)
-      puts "%25s | %s refused to perform %s because %s %s" % [identifier, sender, Sexpistol.new.to_sexp(action), Sexpistol.new.to_sexp(reason), print_message_options(options)]
+      info "%25s | %s refused to perform %s because %s %s" % [identifier, sender, Sexpistol.new.to_sexp(action), Sexpistol.new.to_sexp(reason), print_message_options(options)]
     end
   end
 
   def handle_failure(sender, action, reason, options = {})
     if !handle_saga_reply(sender, :failure, [action, reason], options)
-      puts "%25s | %s failed to perform %s because %s %s" % [identifier, sender, Sexpistol.new.to_sexp(action), Sexpistol.new.to_sexp(reason), print_message_options(options)]
+      info "%25s | %s failed to perform %s because %s %s" % [identifier, sender, Sexpistol.new.to_sexp(action), Sexpistol.new.to_sexp(reason), print_message_options(options)]
     end
   end
 
@@ -346,12 +358,12 @@ class Ontology
   #
 	def handle_request(sender, contents, options = {})
     if !handle_saga_reply(sender, :request, contents, options)
-      puts "%25s | %s requests to perform %s %s" % [identifier, sender, Sexpistol.new.to_sexp(contents), print_message_options(options)]
+      info "%25s | %s requests to perform %s %s" % [identifier, sender, Sexpistol.new.to_sexp(contents), print_message_options(options)]
     end
   end
 
   def handle_query(sender, expression, options = {})
-    puts "%25s | %s queries %s %s" % [identifier, sender, Sexpistol.new.to_sexp(expression), print_message_options(options)] unless handle_saga_reply(sender, :query, expression, options)
+    info "%25s | %s queries %s %s" % [identifier, sender, Sexpistol.new.to_sexp(expression), print_message_options(options)] unless handle_saga_reply(sender, :query, expression, options)
   end
 
   #
@@ -425,8 +437,12 @@ class Ontology
     "[%s]" % options.map {|k,v| "%s=%s" % [k, v]}.join(',')
   end
 
+  def info(msg)
+    Log4r::Logger['ontology'].info(msg)
+  end
+
 	def debug(msg)
-		puts "[DBG] %s" % msg
+		Log4r::Logger['ontology'].debug(msg)
 	end
 
 end

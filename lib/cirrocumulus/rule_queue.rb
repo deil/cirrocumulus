@@ -55,7 +55,7 @@ class RuleQueue
           entry.rule.code.call(@ontology_instance, entry.params)
           entry.state
         rescue Exception => e
-          puts "[WARN] Exception while executing rule: %s\n%s" % [e.to_s, e.backtrace.to_s]
+          warn "Exception while executing rule: %s\n%s" % [e.to_s, e.backtrace.to_s]
         end
       end
     end
@@ -64,6 +64,11 @@ class RuleQueue
   private
 
   def debug(msg)
-    puts msg
+    Log4r::Logger['ontology::run_queue'].debug(msg)
   end
+
+  def warn(msg)
+    Log4r::Logger['ontology::run_queue'].warn(msg)
+  end
+
 end
