@@ -7,6 +7,12 @@ class Storage < KnowledgeClass
   property :capacity
 end
 
+class StorageWithoutId < KnowledgeClass
+  klass :storage
+  property :state
+  property :capacity
+end
+
 describe KnowledgeClass do
   describe '+from_fact' do
     it 'correctly initializes from fact standard representation' do
@@ -23,6 +29,10 @@ describe KnowledgeClass do
   describe '+to_template' do
     it 'returns fact template' do
       Storage.to_template.should == [:storage, :NUMBER, :state, :STATE, :capacity, :CAPACITY]
+    end
+
+    it 'works correctly without primary key' do
+      StorageWithoutId.to_template.should == [:storage, :state, :STATE, :capacity, :CAPACITY]
     end
   end
 
@@ -44,12 +54,22 @@ describe KnowledgeClass do
 
       s.to_template.should == [:storage, 1, :state, :online, :capacity, 100]
     end
+
+    it 'works correctly without primary key' do
+      s = StorageWithoutId.new :state => :online, :capacity => 100
+      s.to_template.should == [:storage, :state, :online, :capacity, 100]
+    end
   end
 
   describe '#to_params' do
     it 'should generate correct pattern for rule condition' do
       s = Storage.new :state => :online
       s.to_params.should == [:storage, :NUMBER, :state, :online, :capacity, :CAPACITY]
+    end
+
+    it 'works correctly without primary key definition' do
+      s = StorageWithoutId.new :state => :online
+      s.to_params.should == [:storage, :state, :online, :capacity, :CAPACITY]
     end
   end
 

@@ -74,9 +74,9 @@ class KnowledgeClass
     def to_template
       description = @@classes[self.name]
       fact = [description.name.to_sym]
-      fact << description.primary_key.upcase.to_sym
+      fact << description.primary_key.upcase.to_sym if description.primary_key
       description.properties.each do |k|
-        next if k == description.primary_key
+        next if k == description.primary_key && description.primary_key
 
         fact << k.to_sym
         fact << k.upcase.to_sym
@@ -106,7 +106,7 @@ class KnowledgeClass
     @values = {}
 
     description = @@classes[self.class.name]
-    if options.has_key?(description.primary_key.to_sym)
+    if description.primary_key && options.has_key?(description.primary_key.to_sym)
       @values[description.primary_key] = options[description.primary_key.to_sym]
     end
 
@@ -120,7 +120,7 @@ class KnowledgeClass
   def to_template
     description = @@classes[self.class.name]
     fact = [description.name.to_sym]
-    fact << values[description.primary_key]
+    fact << values[description.primary_key] if description.primary_key
     description.properties.each do |k|
       next if k == description.primary_key
 
@@ -134,9 +134,9 @@ class KnowledgeClass
   def to_params
     description = @@classes[self.class.name]
     fact = [description.name.to_sym]
-    fact << (values.has_key?(description.primary_key) ? values[description.primary_key] : description.primary_key.upcase.to_sym)
+    fact << (values.has_key?(description.primary_key) ? values[description.primary_key] : description.primary_key.upcase.to_sym) if description.primary_key
     description.properties.each do |k|
-      next if k == description.primary_key
+      next if k == description.primary_key && description.primary_key
 
       fact << k.to_sym
       fact << (values.has_key?(k) ? values[k] : k.upcase.to_sym)
