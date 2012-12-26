@@ -6,7 +6,7 @@ require 'thread'
 class JabberIdentifier < RemoteIdentifier
   def initialize(jid)
     @jid = "#{Cirrocumulus::Environment.current.name}-#{jid}"
-    @channel = JabberChannel.new('172.16.11.4', 'cirrocumulus')
+    @channel = JabberChannel.new()
     @channel.connect(@jid, 'q1w2e3r4')
     @thrd = Thread.new do
       parser = Sexpistol.new
@@ -92,15 +92,27 @@ class JabberChannel
     def query_client(jid)
       @@jabber_clients.find {|c| c.jid == jid}
     end
+
+    def server(server)
+      @@server = server
+    end
+
+    def conference(conf)
+      @@conference = conf
+    end
+
+    def jid_suffix(suffix)
+      @@jid_suffix = suffix
+    end
   end
 
   attr_reader :jid
   attr_reader :conference
 
-  def initialize(server, conference)
+  def initialize(server = nil, conference = nil)
     @jabber = nil
-    @server = server
-    @conference = conference
+    @server = server || @@server
+    @conference = conference || @@conference
     @send_q = Queue.new
     @recv_q = Queue.new
     
@@ -112,7 +124,7 @@ class JabberChannel
   end
   
   def connect(jid, password)
-    @full_jid = "%s@%s" % [jid, @server]
+    @full_jid = "%s@%s" % [jid, @@jid_suffix || @server]
     @jid = jid
 
     puts "Using jid #{@jid}"
@@ -121,6 +133,7 @@ class JabberChannel
       @jabber = Jabber::Simple.new(@full_jid, password)
     rescue Jabber::ClientAuthenticationFailure => ex
       puts ex.class.name
+      puts ex.to_s
       client = Jabber::Client.new(@full_jid)
       client.connect()
       client.register(password)
