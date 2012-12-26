@@ -25,7 +25,17 @@ class RuleQueue
 
   def push(entry)
     @mutex.synchronize do
-      @queue.push(QueueEntry.new(entry)) unless @queue.find {|e| e.state != :finished && e.run_data == entry}
+      return if @queue.find {|e| e != :marker && e.state != :finished && e.run_data == entry}
+
+      if entry.rule.options.has_key?(:for)
+        delay = entry.rule.options[:for]
+        run_at = Time.now + delay
+        debug("Enqueued rule #{entry.rule.name}#{entry.parameters.inspect}")
+        debug("And will execute this rule after #{delay} sec (at #{run_at.strftime("%H:%M:%S %d.%m.%Y")})")
+        @queue.push(QueueEntry.new(entry, run_at))
+      else
+        @queue.push(QueueEntry.new(entry))
+      end
     end
   end
 
@@ -42,10 +52,13 @@ class RuleQueue
   end
 
   def run_queued_rules
-    while (entry = pop) != nil do
+    @queue.push :marker
+
+    while (entry = pop) != :marker do
       next if entry.state == :finished
-      if entry.run_at && (entry.run_at < Time.now)
-        push(entry)
+
+      if !entry.run_at.nil? && (entry.run_at > Time.now)
+        @queue.push(entry)
         next
       end
 
