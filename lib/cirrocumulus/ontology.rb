@@ -370,7 +370,7 @@ class Ontology
   # Handles query-if to ontology. By default, it lookups the fact in KB and replies to the sender.
   #
   def handle_query_if(sender, proposition, options = {})
-    puts "%25s | %s queries if %s %s" % [identifier, sender, Sexpistol.new.to_sexp(proposition), print_message_options(options)] unless handle_saga_reply(sender, :query, expression, options)
+    info "%25s | %s queries if %s %s" % [identifier, sender, Sexpistol.new.to_sexp(proposition), print_message_options(options)] unless handle_saga_reply(sender, :query, expression, options)
   end
 
 	protected

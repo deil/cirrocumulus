@@ -18,7 +18,7 @@ class JabberIdentifier < RemoteIdentifier
           while true
             msg = @channel.received_messages.pop(true) rescue nil
             break if msg.nil?
-            
+
             begin
               fipa_message = parser.parse_string(msg.body)
               id = RemoteIdentifier.new(msg.from.resource)
@@ -38,16 +38,20 @@ class JabberIdentifier < RemoteIdentifier
               options = {}
               content.each do |parameter|
                 next if !parameter.is_a?(Array) || parameter.size < 1
+
                 if parameter[0] == :receiver
                   receiver = parameter[1][2]
                 elsif parameter[0] == :content
                   action_content = parameter[1]
-                elsif [:reply_with, :in_reply_to, :conversation_id].include?(parameter[0])
+                elsif [:ontology, :reply_with, :in_reply_to, :conversation_id].include?(parameter[0])
                   options[parameter[0]] = parameter[1]
+                elsif parameter[0] == :reply_to
+
                 end
               end
-              
-              next if receiver.nil? || receiver != @jid
+
+              next if options.has_key?(:ontology) && options[:ontology] != instance.name
+              next if !options.has_key?(:ontology) && (receiver.nil? || receiver != @jid)
               
               case act
                 when :query
@@ -164,23 +168,27 @@ class JabberChannel
   end
   
   def tick()
-    return if !connected?
-    
+    if !connected?
+      puts "not conn"
+      return
+    end
+
     @jabber.received_messages do |msg|
-     next unless msg.x('jabber:x:delay').nil?
-     
-     @recv_q << msg
+      next unless msg.x('jabber:x:delay').nil?
+      @recv_q << msg
     end
     
     while true do
       to_send = @send_q.pop(true) rescue nil
       break if to_send.nil?
-      
-      @jabber.send!('<message type="groupchat" to="%s" id="%s"><body>%s</body></message>' % [                                 
+
+      @jabber.send!('<message type="groupchat" to="%s" id="%s"><body>%s</body></message>' % [
         "%s@conference.%s" % [@conference, @server], Guid.new.to_s.gsub('-', ''),                                                                                         
         to_send.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;').gsub('"', '&quot;')                                     
       ]) 
     end
+  rescue Exception => ex
+    Log4r::Logger['channels::jabber'].warn(ex.to_s)
   end
   
   protected
