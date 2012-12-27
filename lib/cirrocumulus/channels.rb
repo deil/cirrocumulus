@@ -123,14 +123,11 @@ class NetworkChannel < AbstractChannel
   attr_reader :serializer
 
   def build_message(receiver_name, act, content, options)
-    msg = [
-      act,
-      [:receiver,
-        [:agent_identifier, :name, receiver_name]
-      ],
-      [:content, content]
-    ]
-
+    msg = [act]
+    msg << [:receiver, [:agent_identifier, :name, receiver_name]] if receiver_name
+    msg << [:reply_to, [:agent_identifier, :name, options[:reply_to]]] if options.has_key?(:reply_to)
+    msg << [:content, content]
+    msg << [:ontology, options[:ontology]] if options.has_key?(:ontology)
     msg << [:reply_with, options[:reply_with]] if options.has_key?(:reply_with)
     msg << [:in_reply_to, options[:in_reply_to]] if options.has_key?(:in_reply_to)
     msg << [:conversation_id, options[:conversation_id]] if options.has_key?(:conversation_id)
