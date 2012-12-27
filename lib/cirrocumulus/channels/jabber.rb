@@ -146,8 +146,8 @@ class JabberChannel
       client.close()
       @jabber = Jabber::Simple.new(@full_jid, @@password)
     rescue Exception => ex
-      Log4::Logger['channels::jabber'].fatal('Failed to register new account or connect.')
-      Log4::Logger['channels::jabber'].fatal("Received exception: #{ex.to_s}")
+      Log4r::Logger['channels::jabber'].fatal('Failed to register new account or connect.')
+      Log4r::Logger['channels::jabber'].fatal("Received exception: #{ex.to_s}")
       return false
     end
     
@@ -168,10 +168,7 @@ class JabberChannel
   end
   
   def tick()
-    if !connected?
-      puts "not conn"
-      return
-    end
+    return if !connected?
 
     @jabber.received_messages do |msg|
       next unless msg.x('jabber:x:delay').nil?
