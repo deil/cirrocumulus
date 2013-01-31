@@ -1,6 +1,14 @@
 require 'bundler/setup'
 require_relative '../lib/cirrocumulus'
 require_relative '../lib/cirrocumulus/remote_console'
+require_relative '../lib/cirrocumulus/rules/run_queue'
+require_relative '../lib/cirrocumulus/rules/engine'
+
+r = RuleEngine::Base.new
+r.assert [:guest, "123", :cpu_time, 123.45]
+p r.query([:guest, "123", :cpu_time, 123.45])
+p r.query([:guest, "123", :cpu_time, :CPU_TIME])
+p r.query([:guest1, :GUEST_ID, :cpu_time, :CPU_TIME])
 
 class Saga1 < Saga
   saga 'start_vds'
@@ -30,6 +38,14 @@ class HypervisorOntology < Ontology
 	ontology 'xen'
 
 	rule 'test1', [ [:spec] ] do |ontology, params|
+  end
+
+  trigger 'test2', :for => [:spec] do |ontology|
+    puts "assert"
+  end
+
+  trigger 'test3', :for => [:spec], :on => :retract do |ontology|
+    puts "retract"
   end
 
   def handle_query(sender, expression, options = {})

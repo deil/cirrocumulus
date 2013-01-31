@@ -153,8 +153,7 @@ module RuleEngine
     end
 
     def query(fact)
-      @facts = [] if @facts.nil?
-      return @facts.include? fact
+      find_matches_for_condition(fact).map {|data| data.data}
     end
 
     def match(pattern)

@@ -20,10 +20,26 @@ class RuleDescription
   end
 end
 
+class TriggerDescription
+  attr_reader :name, :fact, :action, :code
+
+  def initialize(name, fact, action, code)
+    @name = name
+    @fact = fact
+    @action = action
+    @code = code
+  end
+
+  def ==(other)
+    name == other.name
+  end
+end
+
 class Ontology
 	class << self
 		@@inproc_agents = {}
 		@@loaded_rules = {}
+    @@loaded_triggers = {}
 		@@ontology_names = {}
 
 		def register_ontology_instance(instance)
@@ -64,7 +80,11 @@ class Ontology
 
 		def current_ruleset()
 			return @@loaded_rules[name] ||= []
-		end
+    end
+
+    def triggers
+      return @@loaded_triggers[name] ||= []
+    end
 
 		def enable_console
 			proxy = RemoteConsole.new
@@ -81,7 +101,20 @@ class Ontology
 
       distilled_predicate = predicate.map {|cond| cond.is_a?(KnowledgeClass) ? cond.to_params : cond}
 			current_ruleset << RuleDescription.new(name, distilled_predicate, options, block)
-		end
+    end
+
+    def trigger(name, options, &block)
+      return unless options.has_key?(:for)
+      return if triggers.find {|t| t.name == name}
+
+      trigger_for = options[:for]
+      trigger_action = options[:on] || :assert
+
+      t = TriggerDescription.new(name, trigger_for, trigger_action, block)
+      triggers << t
+
+      p t
+    end
 	end
 
 	attr_reader :identifier
