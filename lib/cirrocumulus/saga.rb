@@ -22,10 +22,18 @@ class Saga
     @ontology = ontology
     @state = STATE_START
     @started_at = Time.now
+    @timeout_at = nil
   end
 
   def is_finished?
     @state == STATE_ERROR || @state == STATE_FINISHED
+  end
+
+  def tick
+    return if @timeout_at.nil? || @timeout_at > Time.now
+
+    @timeout_at = nil
+    handle_reply(nil, nil, nil)
   end
 
   def handle_reply(sender, contents, options = {}); end
@@ -82,6 +90,10 @@ class Saga
 
   def change_state(new_state)
     @state = new_state
+  end
+
+  def timeout(secs)
+    @timeout_at = Time.now + secs.seconds
   end
 
 end

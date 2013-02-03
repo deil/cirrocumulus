@@ -4,7 +4,7 @@ gem "log4r"
 gem "systemu"
 gem "xmpp4r"
 gem "xmpp4r-simple", :git => 'git://github.com/blaine/xmpp4r-simple.git'
-gem "deil_sexpistol", :require => 'sexpistol'
+gem "deil_sexpistol", '>=0.0.9', :require => 'sexpistol'
 gem 'guid'
 
 group :development do

@@ -239,7 +239,7 @@ class Ontology
 
   def create_saga(saga_class)
     @last_saga_id += 1
-    saga = saga_class.new(saga_class.saga + '-' + @last_saga_id.to_s, self)
+    saga = saga_class.new(saga_class.name + '-' + @last_saga_id.to_s, self)
     @sagas << saga
 
     saga
@@ -340,7 +340,13 @@ class Ontology
   #
   # Tick. Every second.
   #
-  def tick; end
+  def tick
+    @sagas.each do |saga|
+      next if saga.is_finished?
+
+      saga.tick
+    end
+  end
 
   #
   # Handles incoming fact. By default, just adds this fact to KB or redirects its processing to corresponding saga
@@ -397,6 +403,13 @@ class Ontology
 
   def handle_query(sender, expression, options = {})
     info "%25s | %s queries %s %s" % [identifier, sender, Sexpistol.new.to_sexp(expression), print_message_options(options)] unless handle_saga_reply(sender, :query, expression, options)
+
+    matcher = PatternMatcher.new(@facts.enumerate)
+    matches = matcher.find_matches_for_condition(expression).map {|data| data.data}
+    info "%25s | (found #{matches.size} matching facts)" % [identifier]
+    matches.each do |fact|
+      inform(sender, fact, reply(options))
+    end
   end
 
   #
