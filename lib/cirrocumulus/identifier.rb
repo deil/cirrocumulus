@@ -10,12 +10,8 @@ class Agent
     JabberIdentifier.new(ontology_name)
   end
   
-	def self.all(ontology_name = nil)
-		if ontology_name == nil
-			Broadcast.new
-		else
-			Autodiscover.new(ontology_name)
-		end
+	def self.all
+    WholeOntologyIdentifier.new
 	end
 
 	def self.remote(agent_identifier)
@@ -53,6 +49,16 @@ class RemoteIdentifier
   
   def to_s
     @remote_instance_name
+  end
+end
+
+class WholeOntologyIdentifier < RemoteIdentifier
+  def initialize(ontology_name = nil)
+    @ontology_name = ontology_name
+  end
+
+  def to_s
+    @ontology_name || "(broadcast)"
   end
 end
 

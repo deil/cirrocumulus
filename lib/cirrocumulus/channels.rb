@@ -154,7 +154,7 @@ class ChannelFactory
       jabber_client = JabberChannel.query_client(instance.to_s)
 
       if jabber_client
-        return NetworkChannel.new(jabber_client, agent.to_s)
+        return NetworkChannel.new(jabber_client, agent.is_a?(WholeOntologyIdentifier) ? nil : agent.to_s)
       else
         Logger['channels::factory'].warn "No active Jabber clients."
       end

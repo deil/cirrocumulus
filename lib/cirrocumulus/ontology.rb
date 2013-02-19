@@ -327,6 +327,10 @@ class Ontology
   # Send 'query-if' to another agent. Normally, it will reply if the expression is true or false.
   #
 	def query_if(agent, fact, options = {})
+    info "%25s | query %s if %s %s" % [identifier, agent, Sexpistol.new.to_sexp(fact), print_message_options(options)]
+
+    channel = ChannelFactory.retrieve(identifier, agent)
+    channel.query_if(identifier, fact, options) if channel
 	end
 
 	def query_if_and_wait(agent, fact, options = {})

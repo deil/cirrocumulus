@@ -52,32 +52,32 @@ class Saga
   # Inter-agent communications with context of this saga.
   #
 
-  def inform(agent, proposition)
-    @ontology.inform agent, proposition, :conversation_id => self.id
+  def inform(agent, proposition, options = {})
+    @ontology.inform agent, proposition, options.merge(:conversation_id => self.id)
   end
 
-  def agree(agent, action)
-    @ontology.agree agent, action, :conversation_id => self.id
+  def agree(agent, action, options = {})
+    @ontology.agree agent, action, options.merge(:conversation_id => self.id)
   end
 
-  def refuse(agent, action, reason)
-    @ontology.refuse agent, action, reason, :conversation_id => self.id
+  def refuse(agent, action, reason, options = {})
+    @ontology.refuse agent, action, reason, options.merge(:conversation_id => self.id)
   end
 
   def failure(agent, action, reason = true)
-    @ontology.failure agent, action, reason, :conversation_id => self.id
+    @ontology.failure agent, action, reason, options.merge(:conversation_id => self.id)
   end
 
-  def request(agent, action)
-    @ontology.request agent, action, :conversation_id => self.id
+  def request(agent, action, options = {})
+    @ontology.request agent, action, options.merge(:conversation_id => self.id)
   end
 
-  def query(agent, expression)
-    @ontology.query agent, expression, :reply_with => self.id
+  def query(agent, expression, options = {})
+    @ontology.query agent, expression, options.merge(:reply_with => self.id)
   end
 
-  def query_if(agent, proposition)
-    @ontology.query_if agent, proposition, :reply_with => self.id
+  def query_if(agent, proposition, options = {})
+    @ontology.query_if agent, proposition, options.merge(:reply_with => self.id)
   end
 
   def finish()

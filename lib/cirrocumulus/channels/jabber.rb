@@ -142,7 +142,7 @@ class JabberChannel
       Log4r::Logger['channels::jabber'].debug('Received Jabber::ClientAuthenticationFailure, registering new account')
       client = Jabber::Client.new(@full_jid)
       client.connect()
-      client.register(password)
+      client.register(@@password)
       client.close()
       @jabber = Jabber::Simple.new(@full_jid, @@password)
     rescue Exception => ex
