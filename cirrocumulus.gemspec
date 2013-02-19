@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Anton Kosyakin"]
-  s.date = "2013-01-31"
+  s.date = "2013-02-19"
   s.description = "Engine for building your own agents, providing you base functionality for loading ontologies, communicating with other agents and parsing FIPA-ACL messages"
   s.email = "deil@mneko.net"
   s.extra_rdoc_files = [
@@ -51,7 +51,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<systemu>, [">= 0"])
       s.add_runtime_dependency(%q<xmpp4r>, [">= 0"])
       s.add_runtime_dependency(%q<xmpp4r-simple>, [">= 0"])
-      s.add_runtime_dependency(%q<deil_sexpistol>, [">= 0"])
+      s.add_runtime_dependency(%q<deil_sexpistol>, [">= 0.0.9"])
       s.add_runtime_dependency(%q<guid>, [">= 0"])
       s.add_development_dependency(%q<rdoc>, ["~> 3.12"])
       s.add_development_dependency(%q<bundler>, [">= 0"])
@@ -61,7 +61,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<systemu>, [">= 0"])
       s.add_dependency(%q<xmpp4r>, [">= 0"])
       s.add_dependency(%q<xmpp4r-simple>, [">= 0"])
-      s.add_dependency(%q<deil_sexpistol>, [">= 0"])
+      s.add_dependency(%q<deil_sexpistol>, [">= 0.0.9"])
       s.add_dependency(%q<guid>, [">= 0"])
       s.add_dependency(%q<rdoc>, ["~> 3.12"])
       s.add_dependency(%q<bundler>, [">= 0"])
@@ -72,7 +72,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<systemu>, [">= 0"])
     s.add_dependency(%q<xmpp4r>, [">= 0"])
     s.add_dependency(%q<xmpp4r-simple>, [">= 0"])
-    s.add_dependency(%q<deil_sexpistol>, [">= 0"])
+    s.add_dependency(%q<deil_sexpistol>, [">= 0.0.9"])
     s.add_dependency(%q<guid>, [">= 0"])
     s.add_dependency(%q<rdoc>, ["~> 3.12"])
     s.add_dependency(%q<bundler>, [">= 0"])
