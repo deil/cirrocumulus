@@ -4,11 +4,13 @@ require_relative '../lib/cirrocumulus/remote_console'
 require_relative '../lib/cirrocumulus/rules/run_queue'
 require_relative '../lib/cirrocumulus/rules/engine'
 
+=begin
 r = RuleEngine::Base.new
 r.assert [:guest, "123", :cpu_time, 123.45]
 p r.query([:guest, "123", :cpu_time, 123.45])
 p r.query([:guest, "123", :cpu_time, :CPU_TIME])
 p r.query([:guest1, :GUEST_ID, :cpu_time, :CPU_TIME])
+=end
 
 class Saga1 < Saga
   saga 'start_vds'
@@ -78,6 +80,32 @@ class NetworkMonitoringOntology < Ontology
 	def handle_request(sender, contents, options = {})
 		puts "%25s | %s requests %s" % [identifier, sender, Sexpistol.new.to_sexp(contents)]
 	end
+end
+
+require 'xmpp4r-simple'
+
+begin
+
+j = Jabber::Client.new('test@172.16.11.4/cirrocumulus')
+j.connect
+j.auth('test')
+
+j.add_message_callback do |message|
+  p message unless message.body.nil?
+end
+
+j.send("<presence to='cirrocumulus@conference.172.16.11.4/test' />")
+
+p j
+
+while true do
+  sleep 1
+end
+
+j.close
+
+rescue Exception => ex
+ p ex.to_s
 end
 
 Ontology.enable_console()

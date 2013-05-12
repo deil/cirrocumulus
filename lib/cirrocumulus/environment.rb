@@ -32,7 +32,18 @@ module Cirrocumulus
     # Runs the environment. It will also restore all loaded ontologies states.
     #
     def run
-      @ontologies.each {|ontology| ontology.restore_state }
+      @ontologies.each do |ontology|
+        begin
+          ontology.restore_state
+        rescue Exception => ex
+          Log4r::Logger['agent'].warn "ontology #{ontology.name} failed to restore it's state"
+          Log4r::Logger['agent'].warn "with exception: #{ex.to_s}"
+          Log4r::Logger['agent'].warn "at #{ex.backtrace.join("\n")}"
+          Log4r::Logger['agent'].fatal 'will stop execution due to previous errors'
+          return
+        end
+      end
+
       @ontologies.each {|ontology| ontology.run }
     end
 

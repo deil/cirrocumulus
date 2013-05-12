@@ -1,7 +1,37 @@
 require 'xmpp4r'
-require 'xmpp4r-simple'
 require 'guid'
 require 'thread'
+
+if RUBY_VERSION < "1.9"
+# ...
+else
+    # Encoding patch
+    require 'socket'
+    class TCPSocket
+        def external_encoding
+            Encoding::BINARY
+        end
+    end
+
+    require 'rexml/source'
+    class REXML::IOSource
+        alias_method :encoding_assign, :encoding=
+        def encoding=(value)
+            encoding_assign(value) if value
+        end
+    end
+
+    begin
+        # OpenSSL is optional and can be missing
+        require 'openssl'
+        class OpenSSL::SSL::SSLSocket
+            def external_encoding
+                Encoding::BINARY
+            end
+        end
+    rescue
+    end
+end
 
 class JabberIdentifier < RemoteIdentifier
   def initialize(jid)
@@ -70,7 +100,7 @@ class JabberIdentifier < RemoteIdentifier
                   instance.handle_failure(id, action_content[0], action_content[1], options)
               end
             rescue Exception => ex
-              Log4r::Logger['channels'].warn("Failed to process incoming message")
+              Log4r::Logger['channels'].warn('Failed to process incoming message')
               Log4r::Logger['channels'].debug("Message body: #{msg.body}")
               Log4r::Logger['channels'].debug("Exception: #{ex.message}")
               Log4r::Logger['channels'].debug("Backtrace: #{ex.backtrace.join("\n")}")
@@ -116,47 +146,104 @@ class JabberChannel
   attr_reader :conference
 
   def initialize(server = nil, conference = nil)
+    logger.info 'initializing new channel'
+
     @jabber = nil
     @server = server || @@server
     @conference = conference || @@conference
     @send_q = Queue.new
     @recv_q = Queue.new
-    
+
+    logger.info "server = #{@server}"
+    logger.info "conference = #{@conference}"
+
     @@jabber_clients << self
   end
   
   def connected?
-    @jabber && @jabber.connected?
+    @jabber
   end
   
   def connect(jid)
+    Jabber::debug = true
+
+    @should_be_connected = true
     @full_jid = "%s@%s" % [jid, @server]
     @jid = jid
 
-    Log4r::Logger['channels::jabber'].info "Server: #{@server}"
-    Log4r::Logger['channels::jabber'].info "JID: '#{@jid}'"
-    
+    logger.info "connecting as #{@jid}"
+
     begin
-      @jabber = Jabber::Simple.new(@full_jid, @@password)
+      @jabber = Jabber::Client.new(@full_jid + '/cirrocumulus')
+      @jabber.connect
+      @jabber.auth(@@password)
     rescue Jabber::ClientAuthenticationFailure => ex
-      Log4r::Logger['channels::jabber'].debug('Received Jabber::ClientAuthenticationFailure, registering new account')
+      @jabber.close
+
+      logger.debug 'received Jabber::ClientAuthenticationFailure, attempting to register new account'
       client = Jabber::Client.new(@full_jid)
       client.connect()
       client.register(@@password)
       client.close()
-      @jabber = Jabber::Simple.new(@full_jid, @@password)
+
+      @jabber = Jabber::Client.new(@full_jid + '/cirrocumulus')
+      @jabber.connect
+      @jabber.auth(@@password)
     rescue Exception => ex
       Log4r::Logger['channels::jabber'].fatal('Failed to register new account or connect.')
       Log4r::Logger['channels::jabber'].fatal("Received exception: #{ex.to_s}")
+      @jabber = nil
+
       return false
     end
-    
+
+    @jabber.send(Jabber::Presence.new.set_type(:available))
+
+    @jabber.add_message_callback do |message|
+      if message.first_element('delay').nil? && !message.body.nil?
+        logger.debug(message.to_s)
+        @recv_q << message
+      end
+    end
+
+    @jabber.add_iq_callback do |iq_received|
+      p iq_received
+      if iq_received.type == :get
+        if iq_received.queryns.to_s != 'http://jabber.org/protocol/disco#info'
+          iq = Jabber::Iq.new(:result, @jabber.jid.node)
+          iq.id = iq_received.id
+          iq.from = iq_received.to
+          iq.to = iq_received.from
+          p iq
+          @jabber.send(iq)
+        end
+      end
+    end
+
     join_conference(@conference) if connected?
     connected?
   end
-  
-  def disconnect()
-    @jabber.disconnect()
+
+  def reconnect
+    return unless @should_be_connected
+
+    @jabber.reconnect
+    #@jabber = Jabber::Simple.new(@full_jid, @@password)
+    join_conference(@conference)
+
+    true
+  rescue Exception => ex
+    logger.warn 'got exception during reconnect'
+    logger.warn ex.to_s
+    logger.warn ex.backtrace.to_s
+
+    false
+  end
+
+  def disconnect
+    @should_be_connected = false
+    logger.info 'disconnecting'
+    @jabber.close
   end
   
   def queue(msg)
@@ -168,30 +255,41 @@ class JabberChannel
   end
   
   def tick()
-    return if !connected?
+    return if !@should_be_connected
 
-    @jabber.received_messages do |msg|
-      next unless msg.x('jabber:x:delay').nil?
-      @recv_q << msg
+    if !connected?
+      reconnect
+      return
     end
-    
+
     while true do
       to_send = @send_q.pop(true) rescue nil
       break if to_send.nil?
 
-      @jabber.send!('<message type="groupchat" to="%s" id="%s"><body>%s</body></message>' % [
-        "%s@conference.%s" % [@conference, @server], Guid.new.to_s.gsub('-', ''),                                                                                         
-        to_send.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;').gsub('"', '&quot;')                                     
-      ]) 
+      msg = '<message type="groupchat" to="%s" id="%s"><body>%s</body></message>' % [
+        "%s@conference.%s" % [@conference, @server], Guid.new.to_s.gsub('-', ''),
+        to_send.gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;').gsub('"', '&quot;')
+      ]
+      logger.debug(msg)
+
+      @jabber.send(msg)
     end
   rescue Exception => ex
-    Log4r::Logger['channels::jabber'].warn(ex.to_s)
+    logger.warn 'got exception in tick():'
+    logger.warn ex.to_s
+    logger.warn ex.backtrace.to_s
   end
   
   protected
   
   def join_conference(conference)
-    Log4r::Logger['channels::jabber'].info "Joining conference '#{conference}'"
-    @jabber.send!("<presence to='#{conference}@conference.#{@server}/#{@jid}' />")
+    logger.info "joining conference #{conference}"
+    msg = "<presence to='#{conference}@conference.#{@server}/#{@jid}' />"
+    logger.debug(msg)
+    @jabber.send(msg)
+  end
+
+  def logger
+    Log4r::Logger['channels::jabber']
   end
 end

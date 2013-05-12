@@ -142,14 +142,22 @@ class Ontology
 	def run()
 		self.running = true
 
+    info "ontology #{name} was started successfully"
+
 		@thread = Thread.new(self) do |ontology|
 			while self.running do
-				ontology.timeout_facts
-        @rule_queue.run_queued_rules
+        begin
+				  ontology.timeout_facts
+          @rule_queue.run_queued_rules
+        rescue Exception => ex
+        end
 
-        if Time.now - @last_tick_time > 1
-          ontology.tick
-          @last_tick_time = Time.now
+        begin
+          if Time.now - @last_tick_time > 1
+            ontology.tick
+            @last_tick_time = Time.now
+          end
+        rescue Exception => ex
         end
 
 				sleep 0.1
@@ -159,7 +167,7 @@ class Ontology
 
 	def join
 		self.running = false
-		@thread.join()
+		@thread.join() if @thread
   end
 
   def add_knowledge_class(klass)
@@ -220,6 +228,11 @@ class Ontology
      end
    end
  end
+
+  def query_fact(expression)
+    matcher = PatternMatcher.new(@facts.enumerate)
+    matcher.find_matches_for_condition(expression).map {|data| data.data}
+  end
 
   def report_incident(subject, description)
 
@@ -306,7 +319,7 @@ class Ontology
 		info "%25s | %s -> %s" % [identifier.to_s, Sexpistol.new.to_sexp(contents), agent.to_s]
 
 		channel = ChannelFactory.retrieve(identifier, agent)
-		channel.request(identifier, contents) if channel
+		channel.request(identifier, contents, options) if channel
 	end
 
 	def request_and_wait(agent, contents, options = {})
